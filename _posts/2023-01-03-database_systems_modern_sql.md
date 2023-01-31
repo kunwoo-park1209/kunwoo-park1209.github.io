@@ -1,9 +1,9 @@
 ---
-title : "[Database Systems] 02. Modern SQL"
+title : "[CMU Database Systems] 02. Modern SQL"
 categories:
-  - Database Systems
+  - cmu-database-systems
 tags:
-  - [database]
+  - [database system]
 
 toc: true
 toc_sticky: true

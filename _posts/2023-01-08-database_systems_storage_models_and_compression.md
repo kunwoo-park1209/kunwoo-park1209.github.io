@@ -1,9 +1,9 @@
 ---
-title : "[Database Systems] 04. Storage Models & Compression"
+title : "[CMU Database Systems] 04. Storage Models & Compression"
 categories:
-  - Database Systems
+  - cmu-database-systems
 tags:
-  - [database]
+  - [database system]
 
 toc: true
 toc_sticky: true

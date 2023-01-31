@@ -1,9 +1,9 @@
 ---
-title : "[Database Systems] 06. Hash Tables"
+title : "[CMU Database Systems] 06. Hash Tables"
 categories:
-  - Database Systems
+  - cmu-database-systems
 tags:
-  - [database]
+  - [database system]
 
 toc: true
 toc_sticky: true

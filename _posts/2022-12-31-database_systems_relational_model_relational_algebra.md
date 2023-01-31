@@ -1,10 +1,10 @@
 ---
-title : "[Database Systems] 01. Relational Model & Relational Algebra"
+title : "[CMU Database Systems] 01. Relational Model & Relational Algebra"
 
 categories:
-  - Database Systems
+  - cmu-database-systems
 tags:
-  - [database]
+  - [database system]
 
 toc: true
 toc_sticky: true

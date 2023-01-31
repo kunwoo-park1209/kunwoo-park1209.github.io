@@ -1,9 +1,9 @@
 ---
-title : "[Database Systems] 03. Database Storage"
+title : "[CMU Database Systems] 03. Database Storage"
 categories:
-  - Database Systems
+  - cmu-database-systems
 tags:
-  - [database]
+  - [database system]
 
 toc: true
 toc_sticky: true

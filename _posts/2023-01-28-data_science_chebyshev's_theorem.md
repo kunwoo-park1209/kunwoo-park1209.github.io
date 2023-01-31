@@ -1,5 +1,5 @@
 ---
-title : "[Data Science] Chebyshev's Theorem"
+title : "Chebyshev's Theorem"
 categories:
   - Data Science
 tags:

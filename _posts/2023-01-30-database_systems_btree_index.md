@@ -1,7 +1,7 @@
 ---
-title : "[Database Systems] 07. B+Tree Index"
+title : "[CMU Database Systems] 07. B+Tree Index"
 categories:
-  - Database Systems
+  - cmu-database-systems
 tags:
   - [database]
 
@@ -98,9 +98,9 @@ The table is stored in the sort order specified by the primary key as either hea
 
 Since some DBMSs always use a clustered index, the DBMS will automatically make a hidden rowid primary key if a table does not contain a primary key.
 
-### ndex Scan age orting
+### Index Scan Page Sorting
 
-ince directly retiein tupes from an unclstered index is inefficient due to redundant reads the Bcan first figure out all the tuples t needs and then sort them based on their page id. 
+Since directly retrieving tuples from an unclustered index is inefficient due to redundant reads, the DBMS can first figure out all the tuples it needs and then sort them based on their page id. 
 
 ![index scan page sorting](https://user-images.githubusercontent.com/73024925/215371598-84a3663d-c7c4-4137-a916-58c87b214865.png)
 

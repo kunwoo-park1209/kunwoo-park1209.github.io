@@ -1,9 +1,9 @@
 ---
-title : "[Database Systems] 05. Memory Management"
+title : "[CMU Database Systems] 05. Memory Management"
 categories:
-  - Database Systems
+  - cmu-database-systems
 tags:
-  - [database]
+  - [database system]
 
 toc: true
 toc_sticky: true
