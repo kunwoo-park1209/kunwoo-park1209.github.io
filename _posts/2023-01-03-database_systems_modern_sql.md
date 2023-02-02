@@ -2,7 +2,7 @@
 title : "[CMU Database Systems] 02. Modern SQL"
 categories:
   - CMU Database Systems
-tags:s
+tags:
   - [database system]
 
 toc: true
