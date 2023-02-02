@@ -1,7 +1,7 @@
 ---
 title : "[CMU Database Systems] 05. Memory Management"
 categories:
-  - cmu-database-systems
+  - CMU Database Systems
 tags:
   - [database system]
 

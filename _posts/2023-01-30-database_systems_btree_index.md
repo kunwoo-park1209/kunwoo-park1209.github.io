@@ -1,7 +1,7 @@
 ---
 title : "[CMU Database Systems] 07. B+Tree Index"
 categories:
-  - cmu-database-systems
+  - CMU Database Systems
 tags:
   - [database]
 

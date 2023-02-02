@@ -2,7 +2,7 @@
 title : "[CMU Database Systems] 01. Relational Model & Relational Algebra"
 
 categories:
-  - cmu-database-systems
+  - CMU Database Systems
 tags:
   - [database system]
 

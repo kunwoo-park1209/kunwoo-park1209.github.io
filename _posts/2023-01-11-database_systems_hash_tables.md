@@ -1,7 +1,7 @@
 ---
 title : "[CMU Database Systems] 06. Hash Tables"
 categories:
-  - cmu-database-systems
+  - CMU Database Systems
 tags:
   - [database system]
 

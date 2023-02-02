@@ -1,7 +1,7 @@
 ---
 title : "[CMU Database Systems] 03. Database Storage"
 categories:
-  - cmu-database-systems
+  - CMU Database Systems
 tags:
   - [database system]
 
