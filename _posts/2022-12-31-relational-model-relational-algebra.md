@@ -15,13 +15,13 @@ last_modified_at: 2023-02-03
 
 ## Database
 
-A **database** is an organized collection of interrelated data that models some real-world aspect (e.g., modeling the students in a class or a digital music store). People often confuse "databases" with "database management systems" (e.g., MySQL, Oracle, MongoDB, Snowflake). A database management system is a system software that manages a database. Databases are ubiquitous and are the core component of most computer applications. 
+A **database** a collection of data that is organized in a meaningful way and models a real-world aspect. For example, a database can model the students in a class or a digital music store. People often confuse "databases" with "database management systems" (e.g., MySQL, Oracle, MongoDB, Snowflake). A database management system (DBMS) is a software that manages and handles the operations of the database. Databases are the core component of most computer applications.
 
 ### Example
 
-Consider a database that models a digital music store (e.g., Spotify). Let the database hold information about the artists and which albums those artists have released. 
+Consider a database that models a digital music store (e.g., Spotify). Let the database hold information about the artists and the albums they have released. 
 
-A simple system would store artists' and albums' information in two comma-separated value (CSV) files that we manage ourselves in our application code. Each entity has its own set of attributes, so in each file, new lines delimit different records, while a comma delimits each corresponding attribute within a record. Below are two sample CSV files for information about artists and albums:
+A simple system would store artists' and albums' information in two comma-separated value (CSV) files, and application developers would manage them. Each entity has its own set of attributes, so in each file, new lines delimit different records, while a comma delimits each corresponding attribute within a record. Below are two sample CSV files for information about artists and albums:
 
 *Artist.csv (name, year, country)*
 
@@ -50,8 +50,8 @@ for line in file.readlines():
 
 There are issues with the system:
 - Data Integrity
-  - How do we ensure that the artist's name is the same for each album entry?
-  - What if somebody overwrites the album year with an invalid string?
+  - How do we ensure that the artist's name in each album entry exists in Artist.csv?
+  - What if somebody overwrites the album year with an invalid string (e.g., alphabetical string)?
   - What if there are multiple artists on an album?
   - What happens if we delete an artist that has albums?
 - Implementation
@@ -62,26 +62,21 @@ There are issues with the system:
   - What if the machine crashes while our program is updating a record?
   - What if we want to replicate the database on multiple machines for high availability?
  
-Based on the concerns, the sample system is problematic, so this is the motivation for using a database management system.
+These concerns are the motivation for using a database management system.
 
-## Database management System
+## Database Management System
 
-A **database management system (DBMS)** is software that allows applications to store and analyze information in a database. A general-purpose DBMS enables the definition, creation, querying, update, and administration of databases under some **data model**. 
+A **database management system (DBMS)** is software that allows applications to interact with databases. The DBMS manages the operations (e.g., definition, creation, querying, update, and administration) of a database under some **data model** and is responsible for ensuring data consistency and integrity. 
 
 ### Data Model
 
-A **data model** is a collection of concepts describing data in a database. 
-- Samples: relational (most common), NoSQL (key/value, graph, document/object, wide-column/column-family), array/matrix/vectors (for machine learning)
+A **data model** is a collection of concepts that describe how data is organized in a database. Examples of data models include relational, NoSQL (key/value, graph, document/object, wide-column/column-family), and array/matrix/vectors (for machine learning)
 
-A **schema** is a description of a particular data collection using a given data model. 
+A **schema** is a description of a database using a specific data model. 
 
 ### Early DBMSs
 
-Early database applications were challenging to build and maintain on available DBMSs (e.g., IDS, IMS, CODASYL) in the 1960s because there was a tight coupling between logical and physical layers. 
-
-The logical layer describes the database's entities and attributes, while the physical layer describes how to store those entities and attributes (e.g., hash table or tree structure). Today, DBMS automatically decides the physical layer based on the definition of the logical layer. However, early on, the application code defined the physical layer, so if we wanted to change the physical layer the application was using, we would have to change all of the code to match the new physical layer. Also, programmers had to roughly know what queries the application would execute before implementing the DBMS, which means it is not a general DBMS, and they cannot maintain and extend easily.
-
-Edgar Frank "Tedd" Codd, a mathematician working at IBM Research in the late 1960s, noticed that IBM's developers spent their time rewriting database programs every time the database's schema or layout changed. So, in 1969, he proposed a relational model to avoid this. 
+In the early days of database management systems, the application code tightly coupled with the DBMS, meaning that changes to the database schema or physical structure (e.g., changing hash table to tree structure) would require changes to the application code. Tedd Codd, a mathematician working at IBM Research in the late 1960s, noticed the problems with early DBMSs and proposed the relational model in 1969 to avoid these issues. This separated the logical and physical layers of the database, making it easier to change the physical layer without changing the application code, and making it easier to maintain and extend the DBMS. 
 
 ## Relational Model
 
@@ -97,7 +92,7 @@ The relational model defines three concepts:
 
 A **relation** is an unordered set that contains the relationship of attributes that represent entities. Since the relationships are unordered, the DBMS can store them in any way it wants, allowing for optimization. 
 
-A **tuple** is a set of attribute values (also known as its **domain**) in the relation. Values are typically atomic/scalar but can also be lists or nested data structures. In addition, every attribute can be a specific value, NULL, meaning the attribute is undefined for a given tuple. 
+A **tuple** in a relation is a set of attribute values (also known as its **domain**). Values are typically atomic/scalar but can also be lists or nested data structures. In addition, every attribute can hold a specific value, NULL, meaning the attribute is undefined for a given tuple. 
 
 A relation with n attributes is called an n-ary relation. Here is an example of a ternary relation with three tuples.
 
@@ -111,7 +106,7 @@ A relation with n attributes is called an n-ary relation. Here is an example of 
 
 ### Keys
 
-A relation's **primary key** uniquely identifies a single tuple. Some DBMSs automatically create an internal primary key if a table does not define one. For example, many DBMSs support autogenerated unique integers, so an application does not have to increment the keys manually (e.g., SEQUENCE in SQL:2003 or AUTO_INCREMENT in MySQL). 
+A **primary key** of a relation is an attribute or combination of attributes that uniquely identifies a tuple in the relation. Some DBMSs automatically create an internal primary key if a table does not define one. For example, many DBMSs support autogenerated unique integers, so an application does not have to increment the keys manually (e.g., SEQUENCE in SQL:2003 or AUTO_INCREMENT in MySQL). 
 
 In the Artist table above, we cannot use the name for the primary key because it is possible to have other artists with the same names in the future. So instead, we can introduce an artificial column like an ID field as a primary key that will be a unique number that DBMS assigns to every single record. 
 
@@ -123,7 +118,7 @@ In the Artist table above, we cannot use the name for the primary key because it
 | 456 | Notorious BIG | 1992 | USA |
 | 789 | GZA | 1990 | USA |
 
-A **foreign key** specifies that an attribute from one relation must map to a tuple in another relation. For example, a typical use would be to link a street address in one table to a city in another and perhaps to a country in a third. A foreign key eliminates repetitive data input and reduces the possibility of error, increasing data accuracy.
+A **foreign key** links an attribute in one relation to a tuple in another. For example, a typical use would be to link a street address in one table to a city in another and perhaps to a country in a third. A foreign key eliminates repetitive data input and reduces the possibility of error, increasing data accuracy.
 
 *Artist (<u>id</u>, name, year, country)*
 
@@ -152,17 +147,17 @@ A **foreign key** specifies that an attribute from one relation must map to a tu
 
 ## Data Manipulation Languages (DMLs)
 
-DMLs are methods to store and retrieve information from a database. There are two classes of languages for this:
-- **Procedural**: The query specifies the high-level strategy to find the desired result based on sets/bags. (relational algebra)
-- **Non-Procedural (Declarative)**: The query specifies only what data is wanted and not how to find it. (relational calculus)
+DMLs are a set of commands used to interact with a database. They are used to insert, update, and retrive data from a database. There are two types of DMLs: procedural and non-procedural (declarative).
 
-SQL is a non-procedural language.
+A procedural DML requires the user to specify the step-by-step process for finding the desired data. This method involves specifying the strategy for finding the data using techniques such as relational algebra. 
+
+A non-procedural DML allows the user to specify only what data they want and not how to find it. The database management system takes care of the rest, finding the most efficient way to retrieve the data. SQL is an example of a non-procedural language, where users can make a request for data using a query, and the database system handles the rest. 
 
 ## Relational Algebra
 
-**Relational Algebra** is a set of fundamental operations to retrieve and manipulate tuples in a relation based on set algebra. Each operator takes one or more relations as inputs and outputs a new relation. Relational algebra is the building block for processing queries on a relational database. We can chain operators together to create more complex operations.
+**Relational Algebra** is a set of operations for manipulating data stored in a relational database. It allows retrieving, filtering, and transforming data using mathematical concepts of set and tuple algebra. Each operator takes one or more relations as inputs and outputs a new relation. Relational algebra is the building block for processing queries on a relational database. We can chain operators together to create more complex operations.
 
-We will focus on the top 7 operations shown below. 
+There are 7 basic operations in relational algebra: Select, Projection, Union, Intersection, Difference, Product, and Join.
 
 | symbol | operation |
 | ------ | --------- |
@@ -181,7 +176,7 @@ We will focus on the top 7 operations shown below.
 | $\div$ | Division |
 
 ### Select
-The Select takes in a relation and generates a subset of tuples from a relation that satisfies a selection predicate. The predicate acts like a filter to retain only tuples that fulfill its qualifying requirements, and we can combine multiple predicates using conjunctions/disjunctions. 
+The Select takes a relation and outputs a subset of tuples that matches a given predicate. The predicate acts like a filter to retain only tuples that fulfill its qualifying requirements, and we can combine multiple predicates using conjunctions/disjunctions. 
 
 Syntax: $\sigma_{predicate}(R)$
 
@@ -213,7 +208,7 @@ $\sigma_{aid='a2'\land bid>102}(R)$
 
 ### Projection
 
-The Projection takes in a relation and generates a relation with tuples that contain only specified attributes. We can rearrange the attributes' ordering in the input relation and manipulate the values.
+The Projection takes a relation and outputs a relation with specified attributes. We can rearrange the attributes' ordering in the input relation and manipulate the values.
 
 Syntax: $\pi_{A1,A2,...,An}(R)$
 
@@ -239,7 +234,7 @@ $\pi_{bid-100,aid}(\sigma_{aid='a2'}(R))$
 
 ### Union
 
-The Union takes in two relations and generates a relation that contains all tuples that appear in at least one of the input relations.
+The Union takes two relations and outputs a relation with all tuples from both input relations.
 
 **Note**: The two input relations have to have the same attributes. In SQL, the attribute names do not need to be the same, but datatypes should be compatible. 
 
@@ -276,7 +271,7 @@ $(R\cup S)$
 
 ### Intersection
 
-The Intersection takes in two relations and generates a relation that contains all tuples that exist in both of the input relations.
+The Intersection takes two relations and outputs a relation with tuples that exist in both input relations.
 
 **Note**: The two input relations have to have the same attributes. In SQL, the attribute names do not need to be the same, but datatypes should be compatible. 
 
@@ -308,7 +303,7 @@ $(R\cap S)$
 
 ### Difference
 
-The Difference takes in two relations and generates a relation containing all tuples that appear in the first relation but not the second relation.
+The Difference takes two relations and outputs a relation with tuples in the first relation but not in the second. 
 
 **Note**: The two input relations have to have the same attributes. In SQL, the attribute names do not need to be the same, but datatypes should be compatible. 
 
@@ -341,7 +336,7 @@ $(R-S)$
 
 ### Product
 
-The Product takes in two relations and generates a relation that contains all possible combinations of tuples from the input relations.
+The Product takes two relations and outputs a relation with all possible combinations of tuples from both input relations.
 
 Syntax: $(R\times S)$
 
@@ -379,7 +374,7 @@ $(R\times S)$
 
 ### Join
 
-The Join takes in two relations and generates a relation that contains all tuples that are a combination of two tuples (one from each input relation) where for each attribute that the two relations share, the values for that attribute of both tuples are the same. 
+The Join takes two relations and outputs a relation with tuples that match a shared attribute between two input relations. 
 
 There are two differences between intersect and join.
 1. Join returns duplicates, but intersect removes duplicates.
@@ -413,11 +408,11 @@ $(R\bowtie S)$
 
 ### Observation
 
-Relational algebra is a procedural language because it defines the high-level steps to compute a query. For example, $\sigma_{bid=102}(R\bowtie S)$ is saying first to do the join of R and S and then do the select, whereas $(R\bowtie (\sigma_{bid=102}(S)))$ will do the select on S first, and then do the join. These two statements will produce the same answer, but if there is only one tuple in S with b_id = 102 out of a billion tuples, then $(R\bowtie (\sigma_{bid=102}(S)))$ will be significantly faster than $\sigma_{bid=102}(R\bowtie S)$.
+Relational algebra is considered a procedural language as it specifies the steps to compute a query. For example, $\sigma_{bid=102}(R\bowtie S)$ is saying first to do the join of R and S and then do the select, whereas $(R\bowtie (\sigma_{bid=102}(S)))$ will do the select on S first, and then do the join. These two statements will produce the same answer, but if there is only one tuple in S with b_id = 102 out of a billion tuples, then $(R\bowtie (\sigma_{bid=102}(S)))$ will be significantly faster than $\sigma_{bid=102}(R\bowtie S)$.
 
-A better approach is to state the high-level answer you want the DBMS to compute (e.g., retrieve the joined tuples from R and S where b_id equals 102) and let the DBMS decide the steps it intends to take to compute the query. SQL will do precisely this. Of course, the relational model is independent of any query language implementation. But SQL is the de facto standard (with many dialects) for writing queries on relational model databases. 
+A better approach is to state the high-level answer you want the DBMS to perform (e.g., retrieve the joined tuples from R and S where b_id equals 102) and let the DBMS decide the steps it intends to take to perform the query. SQL will do precisely this. Of course, the relational model is independent of any query language implementation. But SQL is the de facto standard (with many dialects) for writing queries on relational model databases. 
 
-Returning to the example at the beginning, we can easily use SQL instead of a procedural language and let the DBMS decide the procedures to compute the query. 
+Returning to the example at the beginning, we can easily use SQL instead of a procedural language and let the DBMS determine the optimal way to perform the query. 
 
 *Procedural Language*
 
@@ -438,9 +433,10 @@ We will see relational algebra again when discussing query optimization and exec
 
 ## Extra: Document Data Model
 
-A document data model (also known as an object data model) is a leading alternative to a relational data model. Instead of having separate relations, it mashes data together and embeds data hierarchy into a single document (e.g., JSON, XML). 
+A document data model (also known as an object data model) is a way of storing data in a database where the information is stored in a single document (e.g., JSON, XML), often in the form of a nested hierarchy of data elements. This approach is different from the relational data model, which uses multiple relations to store data. 
 
-If a database stores the data as follows, we could quickly look up all GZA's albums instead of using join operations on several relations. 
+The advantage of the document data model is that it allows for quick access to information as all the data is stored in a single document, avoiding the need for join operations on multiple relations. This can result in more straightforward and efficient data retrieval compared to the relational model, especially for hierarchical and complex data structures. For example, if a database stores the data as follows, we could quickly look up all GZA's albums instead of using join operations on several relations. However, this type of model may not be suitable for all data structures and can result in a larger document size and potentially reduce data normalization and consistency. 
+
 
 ```json
 {
