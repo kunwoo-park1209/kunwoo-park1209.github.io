@@ -10,18 +10,18 @@ toc: true
 toc_sticky: true
 
 date: 2022-12-31
-last_modified_at: 2023-02-03
+last_modified_at: 2023-02-04
 ---
 
 ## Database
 
-A **database** a collection of data that is organized in a meaningful way and models a real-world aspect. For example, a database can model the students in a class or a digital music store. People often confuse "databases" with "database management systems" (e.g., MySQL, Oracle, MongoDB, Snowflake). A database management system (DBMS) is a software that manages and handles the operations of the database. Databases are the core component of most computer applications.
+A **database** is a structured collection of interrelated data that represents a real-world aspect, such as a class of students or a digital music store. People often confuse "databases" with "database management systems" (e.g., MySQL, Oracle, MongoDB, Snowflake). A database management system (DBMS) is a software system that manages database. Databases are widely used and form the core of many computer applications. 
 
 ### Example
 
-Consider a database that models a digital music store (e.g., Spotify). Let the database hold information about the artists and the albums they have released. 
+Let's consider a digital music store database (e.g., Spotify) that holds information about artists and their albums. 
 
-A simple system would store artists' and albums' information in two comma-separated value (CSV) files, and application developers would manage them. Each entity has its own set of attributes, so in each file, new lines delimit different records, while a comma delimits each corresponding attribute within a record. Below are two sample CSV files for information about artists and albums:
+In a simple system, the information about artists and albums would be stored in two CSV (Comma-Separated Value) files that are managed within the application code. Each entity has its own set of attributes, with new lines separating different records and commas separating the attributes within a record. Below are two sample CSV files for information about artists and albums:
 
 *Artist.csv (name, year, country)*
 
@@ -39,7 +39,7 @@ A simple system would store artists' and albums' information in two comma-separa
 "Liquid Swords","GZA",1990
 ```
 
-The application code has to parse the files each time it wants to read/update records. So, for example, if we want to get the year that GZA went solo, we may write some simple Python code like the following that would go line by line:
+The application code must parse the files each time it wants to read or update the records. For example, if we want to get the year that GZA went solo, we may write some simple Python code like the following that would go line by line:
 
 ```python
 for line in file.readlines():
@@ -48,7 +48,7 @@ for line in file.readlines():
     print(int(record[1]))
 ```
 
-There are issues with the system:
+However, there are issues with the system:
 - Data Integrity
   - How do we ensure that the artist's name in each album entry exists in Artist.csv?
   - What if somebody overwrites the album year with an invalid string (e.g., alphabetical string)?
@@ -62,37 +62,39 @@ There are issues with the system:
   - What if the machine crashes while our program is updating a record?
   - What if we want to replicate the database on multiple machines for high availability?
  
-These concerns are the motivation for using a database management system.
+These issues highlight the need for a database management system.
 
 ## Database Management System
 
-A **database management system (DBMS)** is software that allows applications to interact with databases. The DBMS manages the operations (e.g., definition, creation, querying, update, and administration) of a database under some **data model** and is responsible for ensuring data consistency and integrity. 
+A **database management system (DBMS)** is software that enables applications to store and analyze information in a database. A general-purpose DBMS allows the creation, definition, querying, update, and administration of databases through a given **data model**.
 
 ### Data Model
 
-A **data model** is a collection of concepts that describe how data is organized in a database. Examples of data models include relational, NoSQL (key/value, graph, document/object, wide-column/column-family), and array/matrix/vectors (for machine learning)
+A **data model** is a set of concepts that describe the data in a database. There are various types of data models, such as relational (most common), NoSQL (key/value, graph, document/object, wide-column/column-family), and array/matrix/vectors (for machine learning)
 
-A **schema** is a description of a database using a specific data model. 
+A **schema** is a description of a specific data collection using a particular data model. 
 
 ### Early DBMSs
 
-In the early days of database management systems, the application code tightly coupled with the DBMS, meaning that changes to the database schema or physical structure (e.g., changing hash table to tree structure) would require changes to the application code. Tedd Codd, a mathematician working at IBM Research in the late 1960s, noticed the problems with early DBMSs and proposed the relational model in 1969 to avoid these issues. This separated the logical and physical layers of the database, making it easier to change the physical layer without changing the application code, and making it easier to maintain and extend the DBMS. 
+The early database management systems (DBMSs) in the 1960s, such as IDS, IMS, and CODASYL, were difficult to build and maintain due to a close relationship between the logical and physical layers of the database. The logical layer refers to the entities and attributes of the database, while the physical layer refers to the way the entities and attributes are stored (e.g., using a hash table or tree structure). In the past, the physical layer was determined by the application code, so if the physical layer needed to be changed, all of the code had to be changed as well. 
+
+Edgar Frank "Tedd" Codd, a mathematician at IBM Research in the late 1960s, observed that IBM's developers had to continually rewrite database programs due to changes in the database schema or layout. In response, he proposed a relational model in 1969, which was designed to solve these problems by separating the logical and physical layers, making the DBMS more flexible and easier to maintain.
 
 ## Relational Model
 
-The relational model defines a database abstraction based on relations to avoid maintenance overhead. It has three fundamental tenets:
-  1. Store the database in simple data structures (relations)
-  2. Physical storage left up to the DBMS implementation
-  3. Access data through high-level language, and the DBMS figures out the best execution strategy
+The relational model is a database abstraction that is based on relations to reduce maintenance costs. It consists of three main principles:
+  1. Storing the database in simple data structures called relations
+  2. Leaving the physical storage to the DBMS implementation
+  3. Accessing the data through high-level language, with the DBMS determining the best way to execute the request
 
-The relational model defines three concepts:
-1. Structure: The definition of the database's relations and contents (i.e., the attributes the relations have and the values that those attributes can hold)
-1. Integrity: Ensure the database's contents satisfy constraints (e.g., any value for the year attribute has to be a number)
-1. Manipulation: Programming interface for accessing and modifying a database's contents 
+The relational model also includes three key concepts:
+1. Structure: Define the database's relations and contents, including the attributes and possible values
+1. Integrity: Ensure that the database's contents meet specific constraints (e.g., any value for the year attribute has to be a number)
+1. Manipulation: Provide a programming interface for accessing and modifying the database's contents 
 
-A **relation** is an unordered set that contains the relationship of attributes that represent entities. Since the relationships are unordered, the DBMS can store them in any way it wants, allowing for optimization. 
+A **relation** is an unordered set of attributes that represent entities.
 
-A **tuple** in a relation is a set of attribute values (also known as its **domain**). Values are typically atomic/scalar but can also be lists or nested data structures. In addition, every attribute can hold a specific value, NULL, meaning the attribute is undefined for a given tuple. 
+A **tuple** is a set of attribute values within a relation (also known as its **domain**). Each tuple can have a unique set of values or be undefined (NULL) for some attributes.  
 
 A relation with n attributes is called an n-ary relation. Here is an example of a ternary relation with three tuples.
 
@@ -106,7 +108,7 @@ A relation with n attributes is called an n-ary relation. Here is an example of 
 
 ### Keys
 
-A **primary key** of a relation is an attribute or combination of attributes that uniquely identifies a tuple in the relation. Some DBMSs automatically create an internal primary key if a table does not define one. For example, many DBMSs support autogenerated unique integers, so an application does not have to increment the keys manually (e.g., SEQUENCE in SQL:2003 or AUTO_INCREMENT in MySQL). 
+A **primary key** of a relation is a attribute or combination of attributes that uniquely identifies a tuple in the relation. Some DBMSs automatically create an internal primary key if a table does not define one. For example, many DBMSs support autogenerated unique integers, so an application does not have to increment the keys manually (e.g., SEQUENCE in SQL:2003 or AUTO_INCREMENT in MySQL). 
 
 In the Artist table above, we cannot use the name for the primary key because it is possible to have other artists with the same names in the future. So instead, we can introduce an artificial column like an ID field as a primary key that will be a unique number that DBMS assigns to every single record. 
 
@@ -118,7 +120,7 @@ In the Artist table above, we cannot use the name for the primary key because it
 | 456 | Notorious BIG | 1992 | USA |
 | 789 | GZA | 1990 | USA |
 
-A **foreign key** links an attribute in one relation to a tuple in another. For example, a typical use would be to link a street address in one table to a city in another and perhaps to a country in a third. A foreign key eliminates repetitive data input and reduces the possibility of error, increasing data accuracy.
+A **foreign key** is an attribute in one relation that must map to a tuple in another relation. For example, a typical use would be to link a street address in one table to a city in another and perhaps to a country in a third. A foreign key eliminates repetitive data input and reduces the possibility of error, increasing data accuracy.
 
 *Artist (<u>id</u>, name, year, country)*
 

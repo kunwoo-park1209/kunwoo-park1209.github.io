@@ -9,59 +9,48 @@ toc: true
 toc_sticky: true
 
 date: 2023-01-04
-last_modified_at: 2023-01-04
+last_modified_at: 2023-02-04
 ---
 
 ## Storage
 
-We will focus on a "disk-oriented" DBMS architecture that assumes that the primary storage location of the database is on non-volatile disk(s).
+The concept of storage in a "disk-oriented" DBMS architecture assumes that the primary storage location of the database is on non-volatile disk(s). 
 
 ![storage_hierarchy](https://user-images.githubusercontent.com/73024925/210355314-b582ae4d-3f50-45a5-af96-373b65c78737.png)
 
-At the top of the storage hierarchy, we have the devices closest to the CPU. They are the fastest storage but are also the smallest and most expensive. The further you get away from the CPU, the larger but slower the storage devices get. These devices also get cheaper per GB.
+The storage hierarchy is organized based on the proximity to the CPU, with the fastest but smallest and most expensive devices at the top, and larger but slower and cheaper devices further down. 
 
-**Volatile Devices:**
-- Volatile means that if you pull the power from the machine, then the data is lost.
-- Volatile storage supports fast random access with byte-addressable locations, which means that the program can jump to any byte address and get the data there. 
-- For our purposes, we will always refer to this storage class as "memory."
+**Volatile storage** is referred to as "memory" and is fast with random access (i.e., the program can jump to any byte address and get the data there), but the data is lost when the machine loses power. 
 
-**Non-Volatile Devices:**
-- Non-volatile means that the storage device does not require continuous power to retain the bits it is storing.
-- It is also block-addressable (or page-addressable), which means that the program has to load the 4KB page that holds a value the program wants into memory to read the value at a particular offset.
-- Non-volatile storage is traditionally better at sequential access (reading multiple contiguous chunks of data simultaneously).
-- We will refer to this as "disk." We will not distinguish between solid-state storage (SSD) and spinning hard drives (HDD).
+**Non-volatile storage**, referred to as "disk", retains data even without power and is better at sequential access (i.e., read multiple contiguous chunks of data simultaneously), but is slower for random access.
 
-A relatively new storage device class called **persistent memory** is becoming more popular. These devices are designed to be the best of both worlds, fast as DRAM with the persistence of disk. We will not cover these devices, which are currently not in widespread production use. The most famous example is Optane; unfortunately, Intel is winding down its production as of summer 2022. Note that you may see older references to persistent memory as "non-volatile memory." 
+**Persistent memory** is a newer storage device class that combines the speed of DRAM with the persistence of disk, but is not currently in widespread production use. The most famous example is Optane; unfortunately, Intel is winding down its production as of summer 2022. 
 
-You may see references to NVMe SSDs, where NVMe stands for non-volatile memory express. These NVMe SSDs are not the same hardware as persistent memory modules. Instead, they are typical NAND flash drives that connect over an improved hardware interface. This enhanced hardware interface allows for much faster transfers, which leverages improvements in NAND flash performance. 
-
-Since our DBMS architecture assumes that the database is stored on disk, the DBMS's components manage the movement of data between non-volatile disk and volatile memory since the system cannot operate on the data directly on disk. 
-
-We will focus on hiding the latency of the disk rather than optimizations with registers and caches since getting data from the disk is so slow. For example, if reading data from the L1 cache reference took one second, reading from an SSD would take 4.4 hours, and reading from an HDD would take 3.3 weeks.
+The DBMS architecture assumes that the database is stored on disk, and components manage the movement of data between disk and memory. The focus is on hiding the disk latency since it is much slower than memory access. The DBMS tries to maximize sequential access to reduce the number of writes to random pages and store data in contiguous blocks. 
 
 ![latency](https://user-images.githubusercontent.com/73024925/210357123-25eb15af-93d3-485b-95a3-ad7b1f8efc12.png)
 
-Random access on disk is usually much slower than sequential access, so the DBMS will want to maximize sequential access. For example,  algorithms in the DBMS try to reduce the number of writes to random pages so that the data is stored in contiguous blocks. Also, DBMS allocates multiple pages simultaneously, called an extent. 
-
 ## Disk-Oriented DBMS Overview
 
-The database is all on disk, and the data in database files are organized into pages, with the first page being the directory page. The DBMS needs to bring the data into memory to operate the data. It does this by having a **buffer pool** that manages the data movement back and forth between disk and memory. The DBMS also has an execution engine that will execute queries. The execution engine will ask the buffer pool for a specific page, and the buffer pool will bring that page into memory, giving the execution engine a pointer to that page in memory. The buffer pool manager will ensure the page is there while the execution engine operates on that part of the memory. 
+A disk-oriented DBMS is a type of DBMS architecture in which the primary storage location of the database is on non-volatile disk(s). The database files are organized into pages, with the first page being the directory page. In order to operate on the data, the DBMS needs to bring it into volatile memory, which is done through a **buffer pool**.
+
+The buffer pool manages the data movement between disk and memory and provides the execution engine with a pointer to the memory location of a specific page when requested. The execution engine is responsible for executing database queries and operates on the data in memory. The buffer pool manager ensures that the necessary pages remain in memory while the execution engine operates on them. 
 
 ![disk_oriented_dbms](https://user-images.githubusercontent.com/73024925/210359484-112d2b3e-e0af-4ce0-9ecf-ca9c304ac752.png)
 
 ## DBMS vs. OS
 
-A high-level design goal of the DBMS is to support databases that exceed the amount of memory available. Since reading/writing to disk is expensive, DBMS must carefully manage disk I/O. We do not want large stalls fetching something from the disk to slow down everything else. We want the DBMS to be able to process other queries while it is waiting to get the data from the disk. 
+The main difference between a DBMS and an operating system (OS) is that while an OS is responsible for managing the underlying hardware and providing basic system services, a DBMS is focused on managing the data stored in databases and providing the functionality needed to interact with that data. 
 
-This high-level design goal is like virtual memory, an ample address space for the OS to bring in pages from disk. 
+One high-level design goal of a DBMS is to support databases that are larger than the available memory. As reading/writing to disk is slow, a DBMS must manage disk I/O carefully. This high-level design goal is like virtual memory, an ample address space for the OS to bring in pages from disk. 
 
-One way to achieve this virtual memory is by using memory mapping (**mmap**) to map the contents of a file in a process's address space, which makes the OS responsible for moving pages of the file in and out between disk and memory. However, there are several problems with this approach. 
+Using the OS's memory mapping (**mmap**) to map the contents of a database file into a process's address space is one approach to achieve virtual memory, but it has several limitations. 
 
 1. **Transaction Safety**
-    OS can flush dirty pages at any time. Therefore, if there are multiple writers, we never want to use **mmap** in our DBMS
+    The OS can flush dirty pages at any time Therefore, if there are multiple writers, we never want to use **mmap** in our DBMS
 
 2. **I/O Stalls**
-    OS will block the thread if **mmap** hits a page fault. The thread will wait until rescheduled and the data it wants is available. 
+    OS can block the thread if **mmap** hits a page fault. The thread will wait until rescheduled and the data it wants is available. 
 
 3. **Error Handling**
     It is challenging to validate pages because DBMS does not know which pages are in memory. Also, any access can cause signals that the DBMS must handle.
@@ -74,26 +63,23 @@ There are some solutions to some of these problems:
 - **mlock**: Tells the OS not to swap memory ranges out to disk.
 - **msync**: Tells the OS to flush memory ranges out to disk.
 
-We do not advise using **mmap** in a DBMS for correctness and performance reasons. 
-
-Even though the system will have functionalities that seem like something the OS can provide, having the DBMS implement these procedures itself gives it better control and performance. The DBMS almost always wants to control things and can do a better job than the OS (e.g., flushing dirty pages to disk in the correct order, specialized prefetching, buffer replacement policy, and thread/process scheduling) since it knows more about the data being accessed and the queries being processed.
-
-The operating system is not your friend.
+It is advised not to use **mmap** in a DBMS for both correctness and performance reasons. Instead, the DBMS can implement these procedures itself for better control and performance since it knows more about the data and the queries being processed. The DBMS can control things such as flushing dirty pages to disk in the correct order, specialized prefetching, buffer replacement policy, and thread/process scheduling, resulting in better performance than the OS.
 
 ## File Storage
 
-A DBMS stores a database as one or more files on disk in its primary forms. Some may use a file hierarchy, and others may use a single file (e.g., SQLite). Early systems in the 1980s used custom file systems on raw storage. Most newer DBMSs do not do this. 
+File storage refers to the way a DBMS stores a database on disk. The database is stored as one or more files, either as a file hierarchy or as a single file (e.g., SQLite), depending on the DBMS being used.
 
-The OS does not know anything about the contents of these files. Only the DBMS knows how to decipher its contents since DBMS encodes data specific to itself. 
+The OS is not aware of the contents of these files, as only the DBMS can decipher the encoded data specific to itself. 
 
-The DBMS's **storage manager** manages a database's files. It organizes the files as a collection of pages. It also keeps track of what data has been read and written to pages and how much free space pages have. Some storage managers do their scheduling for reads and writes to improve the pages' spatial and temporal locality. Note that the storage manager is not entirely independent from the rest of the DBMS. 
+The DBMS's **storage manager** manages the database files and organizes them into a collection of pages. The storage manager also keeps track of what data has been read or written to the pages and how much free space each page has. Some storage managers perform scheduling for reads and writes to improve spatial and temporal locality. Note that the storage manager is not entirely independent from the rest of the DBMS. 
 
 ## Database Pages
 
+Database pages are the units in which a DBMS organizes the data in a database. **Pages** are fixed-sized blocks of data, typically ranging from 512 bytes to 16KB, that store different types of data such as tuples, meta-data, indexes, and log records. 
 
-The DBMS organizes the database across one or more files in fixed-size blocks of data called **pages**. Pages can contain different kinds of data (e.g., tuples, meta-data, indexes, log records). Most systems do not mix these types within pages. Some systems require a page to be **self-contained** (e.g., Oracle), meaning that all the information needed to read each page is on the page itself. 
+Most systems do not mix these types within pages. Some systems require a page to be **self-contained** (e.g., Oracle), meaning that all the information needed to read each page is on the page itself. 
 
-Each page has a unique identifier. If the database is a single file, then the page id can be the file offset. Most DBMSs have an indirection layer that maps a page id to a physical location (i.e., a file path and offset). So, first, the system's upper levels will ask for a specific page number. Then, the storage manager will have to turn that page number into a file and an offset to find the page. 
+Pages are identified by a unique identifier. For example, if the database is a single file, then the page id can be the file offset. The DBMS uses an indirection layer to map the page identifier to a physical location on disk. So, first, the system's upper levels will ask for a specific page number. Then, the storage manager will have to turn that page number into a file and an offset to find the page.
 
 Most DBMSs use fixed-size pages to avoid the engineering overhead needed to support variable-sized pages. For example, deleting a page from variable-sized pages could create a hole in files that the DBMS cannot fill with new pages.
 
@@ -103,13 +89,13 @@ There are three different notions of pages in DBMS:
 2. OS page (usually 4KB)
 3. Database page (512B-16KB)
 
-The storage device guarantees an atomic write of the size of the hardware page. If the hardware page's size is 4KB and the system tries to write 4KB to the disk, either it writes all 4KB or none of it will, meaning that a hardware page is the largest block of data that the storage device can guarantee failsafe writes. In other words, if our database page is bigger than our hardware page, the DBMS will have to take extra measures to ensure that the data gets written out safely since the program can get part way through writing a database page to disk when the system crashes. 
+The hardware page is the largest block of data that the storage device can guarantee to write atomically. For example, if the hardware page's size is 4KB and the system tries to write 4KB to the disk, either it writes all 4KB or none of it will. In other words, if the database page is larger than the hardware page, the DBMS must take extra measures to ensure that the data is written safely since the program can get part way through writing a database page to disk when the system crashes. 
 
 ### Database Heap
 
 There are a couple of ways to find the location of the page a DBMS wants on the disk (e.g., heap file organization, tree file organization, sequential/sorted file organization, and hashing file organization). We will only cover heap file organization. 
 
-A **heap file** is an unordered collection of pages with tuples stored in random order. It supports iterating over all pages as well as creating/getting/writing/deleting pages. 
+A **heap file** is a type of file organization used by a DBMS where the pages are stored in an unordered collection It supports iterating over all pages as well as creating/getting/writing/deleting pages. 
 
 ![heap_file](https://user-images.githubusercontent.com/73024925/210481111-c1da0911-d780-4514-a8c9-ba6b51876f6a.png)
 
