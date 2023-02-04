@@ -79,7 +79,7 @@ Database pages are the units in which a DBMS organizes the data in a database. *
 
 Most systems do not mix these types within pages. Some systems require a page to be **self-contained** (e.g., Oracle), meaning that all the information needed to read each page is on the page itself. 
 
-Pages are identified by a unique identifier. For example, if the database is a single file, then the page id can be the file offset. The DBMS uses an indirection layer to map the page identifier to a physical location on disk. So, first, the system's upper levels will ask for a specific page number. Then, the storage manager will have to turn that page number into a file and an offset to find the page.
+Pages are identified by a unique identifier such as a file offset if the database is stored in a single file. The DBMS uses an indirection layer to map the page identifier to a physical location on disk. So, first, the system's upper levels will ask for a specific page number. Then, the storage manager will have to turn that page number into a file and an offset to find the page.
 
 Most DBMSs use fixed-size pages to avoid the engineering overhead needed to support variable-sized pages. For example, deleting a page from variable-sized pages could create a hole in files that the DBMS cannot fill with new pages.
 
@@ -99,33 +99,23 @@ A **heap file** is a type of file organization used by a DBMS where the pages ar
 
 ![heap_file](https://user-images.githubusercontent.com/73024925/210481111-c1da0911-d780-4514-a8c9-ba6b51876f6a.png)
 
-It is easy to find pages if DBMS stores a database only in a single file. However, if a database is stored in multiple files, the DBMS needs meta-data to track what pages exist in multiple files and which ones have free space.
-
 The DBMS can locate a page on disk given a **page_id** by using a linked list of pages or a page directory.
 
-1. **Linked List**: The header page points to a list of free pages and data pages. However, if the DBMS is looking for a specific page, it has to do a sequential scan of the data page list until it finds the page.
-2. **Page Directory**: DBMS maintains special pages that track the locations of data pages in the database files. DBMS must ensure that the directory pages are in sync with the data pages. The directory also records meta-data about available space (e.g., the amount of free space on each page, a list of free/empty pages).
+1. **Linked List**: The header page points to a list of free pages and data pages. However, if the DBMS wants to find a specific page, it has to do a sequential scan of the data page list. 
+2. **Page Directory**: The DBMS maintains special pages that track the locations of data pages and record meta-data about available page (e.g., the amount of free space on each page, a list of free/empty pages).
 
 ## Page Layout
 
-Every page contains a **header** that records meta-data about the page's contents:
-
-- Page size
-- Checksum
-- DBMS version
-- Transaction visibility
-- Compression information
-
-We must decide how to organize the data inside the page for any page storage architecture.
+The page layout is the way data is organized inside a page in a database. Every page has a **header** that contains metadata such as page size, checksum, DBMS version, transaction visibility, and compression information.
 
 A strawman approach to laying out data is to keep track of how many tuples the DBMS has stored on a page and then append a new tuple to the end every time. However, problems (e.g., fragmentation) arise when we delete tuples or when tuples have variable-length attributes.
 
-There are two main approaches to laying out data on pages:
+There are two main approaches for laying out data on pages:
 
-1. **Slotted Pages**: Page maps slots to offsets
-    - The most common approach used in DBMSs today.
-    - Header keeps track of the number of used slots, the offset of the starting location of the last used slot, and a slot array, which keeps track of the location of each tuple's starting position offset. 
-    - When we add a tuple, the slot array will grow from the beginning to the end, and the data of the tuples will grow from the end to the beginning. The page becomes full when the slot array and the tuple data meet. 
+1. **Slotted Pages** Page maps slots to offsets
+    - The most common approach used in DBMS today.
+    - A header keeps track of the number of used slots, the offset of the starting location of the last used slot, and a slot array, which keeps track of the location of each tuple's starting position offset.
+    - The slot array grows from the beginning to the end and the data of the tuples grow from the end to the beginning. The page becomes full when the slot array and the tuple data meet. 
 
     ![slotted_page](https://user-images.githubusercontent.com/73024925/210482793-702298ea-dcd9-40f4-ad25-e25b24e8f8f9.png)
 
@@ -133,26 +123,18 @@ There are two main approaches to laying out data on pages:
 
 ## Tuple Layout
 
-A tuple is a sequence of bytes. It is the DBMS's job to interpret those bytes into attribute types and values. 
+The tuple layout is a way of organizing the data stored in a relational DBMS. Each tuple in a database consists of a sequence of bytes and the DBMS is responsible for interpreting these bytes into attribute types and values.
 
 ![tuple_layout](https://user-images.githubusercontent.com/73024925/210485382-7651bb64-5c18-4be1-b7cf-824f4433ab6e.png)
 
 
-**Tuple Header**: Each tuple has a **header** containing meta-data about it.
-- Visibility information for the DBMS's concurrency control protocol (i.e., information about which transaction created/modified that tuple).
-- Bit Map for NULL values.
-- **Note**: The DBMS does **not** need to store meta-data about the database schema here.
+The tuple has a **header** that contains metadata about the tuple, including information about which transaction created or modified the tuple, a bit map for NULL values, and other information required by the DBMS's concurrency control protocol. Note that the DBMS does **not** need to store metadata about the database schema here.
 
-**Tuple Data**: Actual data for attributes
-- Attributes are typically stored in the order you specify when creating the table for software engineering reasons (i.e., simplicity). However, it might be more efficient to lay them out differently.
-- Most DBMSs do not allow a tuple to exceed the size of a page.
+The actual data for the attributes is stored in the **tuple data** section, which is typically stored in the order specified when creating the table because of simplicity, but can also be laid out differently for efficiency. Most DBMSs do not allow a tuple to exceed the size of a page.
 
-**Unique Identifier**:
-- The DBMS assigns a unique **record identifier** (record id) to each tuple to keep track of individual tuples.
-- The most common way to assign the identifier is **page_id + (offset or slot)**, but it can also contain file location information (e.g., 10-byte ROWID in Oracle, 6-byte CTID in Postgres)
-- An application **cannot** rely on these ids to mean anything.
+The DBMS assigns a **unique identifier** (record id) to each tuple to keep track of individual tuples. This identifier is typically assigned using the page **id + (offset or slot)** formula, but can also contain file location information. Applications **cannot** rely on these ids to mean anything specific.
 
-**Denormalized Tuple Data**: If two tables are related, the DBMS can physically **denormalize**(e.g., "pre-join") related tuples and store them together in the same page. This technique makes reads faster since the DBMS may only load on one page rather than two separate pages. However, it makes updates more expensive since the DBMS needs more space for each tuple. This technique is not a new idea. IBM System R did this in the 1970s, and several NoSQL DBMSs do this without calling it physical denormalization. 
+Finally, related tuples can be **denormalized** and stored together in the same page. This technique makes reads faster since the DBMS may only load on one page rather than two separate pages. However, it makes updates more expensive since the DBMS needs more space for each tuple. This is a technique that has been used for decades, both in traditional relational databases (e.g., IBM System R) and in a modern NoSQL databases.  
 
 Q1. What does a storage manager do when inserting a new tuple?
 
@@ -177,39 +159,36 @@ Some problems associated with the Slotted Page Design are:
 
 By assuming that a system only allows the creation of new data and **no** overwrites (e.g., cloud storage S3, HDFS), the log-structured storage model addresses some of the abovementioned problems.
 
-**Log-Structured Storage**: Instead of storing tuples, the DBMS only stores log records that contain changes to tuples (PUT, DELETE). Each log record contains the tuple's unique identifier. PUT has the tuple contents, and DELETE marks the tuple as deleted. As the application makes changes to the database, the DBMS appends log records toward the end of the file without checking previous log records. When the page gets full, the DBMS writes it out a disk and starts filling up the next page with records. 
+**Log-Structured Storage** is a storage model for DBMS that stores changes to tuples (such as PUT or DELETE operations) in log records rather than the actual tuples themselves.  Each log record contains the tuple's unique identifier. PUT has the tuple contents, and DELETE marks the tuple as deleted. Log records are appended to the end of a page without checking previous log records, and when the page becomes full, it is written to disk and the next page starts being filled. 
  
-To read a tuple with a given id, the DBMS finds the newest log record corresponding to that id by scanning the log backward from newest to oldest and "recreates" the tuple. If the log record is in-memory, the DBMS can just read it. If the log record is on a disk page, the DBMS retrieves it to the memory. To avoid long reads, the DBMS can have indexes that map a tuple id to the newest log record. 
+To retrieve a tuple with a given ID, the DBMS scans the log backwards to find the newest log record with that ID and recreates the tuple. If the log record is in-memory, the DBMS can just read it. If the log record is on a disk page, the DBMS retrieves it to the memory. To avoid long reads, the DBMS can have indexes that map a tuple id to the newest log record. 
 
 ![log_structured](https://user-images.githubusercontent.com/73024925/210554984-e5905982-328b-4a7d-85ce-aff87b7a45f6.png)
 
-Because the logs will grow forever, the DBMS may periodically compact pages to reduce wasted space. For example, if it already had a tuple and then made an update, it could compact it down to just inserting the updated tuple. In addition, compaction can coalesce larger log files into smaller ones by removing unnecessary records. RocksDB's level compaction and university compaction support this.
+Over time, the logs will grow, so the DBMS may periodically compact pages to reduce wasted space by removing unnecessary records and storing only the updated tuples. 
+RocksDB's level compaction and university compaction support this.
 
 ![log_structured_compaction](https://user-images.githubusercontent.com/73024925/210556555-fdcce175-5e15-42d7-ada7-14234648e91d.png)
 
-After a page is compacted, the DBMS does not need to maintain the records' temporal ordering within the page because each tuple id is guaranteed to appear at most once. The DBMS can instead sort the page based on id and store it into a table to improve the efficiency of tuple lookups. (These are called **Sorting String Tables** (SSTables). 
+The compacted pages can then be sorted based on ID and stored in tables called **Sorting String Tables (SSTables)** for improved efficiency of tuple lookups. 
 
 ![sorted_string_tables](https://user-images.githubusercontent.com/73024925/210557432-7bc6a651-f8d6-4378-8a2a-830e40d3436b.png)
 
-Log-structured storage managers are familiar today due partly to the proliferation of RocksDB. It has fast writes because disk writes are sequential, and existing pages are immutable from writes which leads to reduced random disk I/O. It also works well on append-only storage because the DBMS cannot go back and update the data. However, there are some downsides to this approach. The DBMS ends up with write amplification due to compaction. (It re-writes the same data over and over again.) Also, compaction itself is an expensive operation. 
+Log-structured storage managers are popular for their fast writes and reduced random disk I/O. It has fast writes because disk writes are sequential, and existing pages are immutable from writes which leads to reduced random disk I/O. However, the DBMS ends up with write amplification due to compaction (i.e., it re-writes the same data over and over again) and compaction itself is an expensive overhead. 
 
 ## Data Representation
 
-The data in a tuple are byte arrays. The DBMS's job is to interpret those bytes to derive the attribute values. A **data representation** scheme is how a DBMS stores the bytes for a value.
-
-Five high-level datatypes can be stored in tuples: integers, variable-precision numbers, fixed-point precision numbers, variable length values, and dates/times.
+**Data representation** in a database refers to how a DBMS stores and interprets the byts of data stored in tuples. There are five high-level data types that can be stored in tuples: integers, variable-precision numbers, fixed-point precision numbers, variable length values, and dates/times.
 
 ### Integers
 
-Most DBMSs store integers using their "native" C/C++ types as specified by the IEEE-754 standard. These values have fixed lengths.
+Integers are stored using the native C/C++ types specified by the IEEE-754 standard, with fixed lengths. 
 
 Examples: INTEGER, BIGINT, SMALLINT, TINYINT
 
 ### Variable Precision Numbers
 
-These are inexact, variable-precision numeric types that use the "native" C/C++ types specified by the IEEE-754 standard. These values also have fixed lengths.
-
-Operations on variable-precision numbers are faster to compute than arbitrary precision numbers because the CPU can execute instructions on them directly. However, there may be rounding errors when computations because some numbers cannot be represented precisely. 
+Variable-precision numbers are stored with fixed lengths, using the native C/C++ specified by the IEEE-754 standard, but are inexact and have variable precision. They are faster to compute than arbitrary precision numbers, but can result in rounding errors.
 
 Examples: FLOAT, REAL
 
@@ -231,9 +210,7 @@ x+y = 0.30000001192092895508
 
 ### Fixed Point Precision Numbers
 
-These are numeric data types with arbitrary precision and scale. They are typically stored in exact, variable-length binary representation (almost like a string) with additional meta-data that will tell the system things like the length of the data and where the decimal should be. 
-
-These data types are used when rounding errors are unacceptable, but the DBMS pays a performance penalty to get this accuracy. However, the DBMS can give up arbitrary precision to improve performance. 
+Fixed-point precision numbers have arbitrary precision and scale and are stored in exact, variable-length binary representation (almost like a string). They are used when rounding errors are unacceptable but come with a performance penalty. However, the DBMS can give up arbitrary precision to improve performance.
 
 Examples: NUMERIC, DECIMAL
 
@@ -259,28 +236,25 @@ struct decimal_t {
 
 ### Variable-Length Data
 
-These represent data types of arbitrary length. They are typically stored with a header that keeps track of the size of the string to make it easy to jump to the next value. It may also contain a checksum for the data.
+Variable-length data types represent data of arbitrary length and are stored with a header to keep track of size and potentially a checksum. Larger values (bigger than a page) may be separately stored in **overflow** pages with the tuple containing a reference to them. These overflow pages can point to additional overflow pages until all the data is stored. The criteria that the database systems use to decide to store data in an overflow page varies (e.g., Postgres: >2KB, MySQL: >1/2 size of the page, SQL Server: > size of the page). 
 
-Most DBMSs do not allow a tuple to exceed the size of a single page. To store values bigger than a page, the DBMS uses special **"overflow"** pages and makes the tuple contain a reference to that page. These overflow pages can point to additional overflow pages until all the data can be stored. The criteria that the database systems use to decide to store data in an overflow page varies (e.g., Postgres: >2KB, MySQL: >1/2 size of the page, SQL Server: > size of the page). 
-
-Some systems will let you store these large values in an external file, and then the tuple will contain a pointer to that file (e.g., BLOB type in general, BFILE type in Oracle, FILESTREAM type in Microsoft). So, for example, if the database is storing photo information, the DBMS can keep the photos in the external files rather than having them take up large amounts of space in the DBMS. One downside of this is that the DBMS **cannot** manipulate the contents of this file. Thus, there are no durability or transaction protections.
+Some systems will let you store these large values in an external file, and then the tuple will contain a pointer to that file (e.g., BLOB type in general, BFILE type in Oracle, FILESTREAM type in Microsoft). For example, if the database is storing photo information, the DBMS can keep the photos in the external files rather than having them take up large amounts of space in the DBMS. One downside of this is that the DBMS **cannot** manipulate the contents of this file. Thus, there are no durability or transaction protections.
 
 Examples: VARCHAR, VARBINARY, TEXT, BLOB
 
 ### Dates and Times
 
-Representations for date/time vary for different systems. Typically, these are 32/64-bit integers of microseconds/milliseconds/seconds since the Unix epoch.
+Date/time data types are typically stored as 32/64-bit integers of microseconds/milliseconds/seconds since the Unix epoch. Representations vary among different systems.
 
 Examples: TIME, DATE, TIMESTAMP
 
 ## System Catalogs
 
+System catalogs are internal databases within a DBMS that store metadata (data about data) about the databases it manages. This metadata includes information about tables, columns, data types, indexes, views, users, permissions, and statistics. 
 
-For the DBMS to decipher the contents of tuples, it stores meta-data about the databases in its internal catalogs. The meta-data will contain information about the database's tables and columns, their types, and the ordering of the values. It will also have information about indexes, views, users, permissions, and internal statistics.
+The catalogs are stored as tables within the DBMS. When implementing the DBMS, the developers create a wrapper code that can directly read tuples in the system catalog instead of using SQLs. In addition, DBMS has specialized code to "bootstrap" these catalog tables. 
 
-Most DBMSs store their catalog inside of themselves as tables. When implementing the DBMS, the developers create a wrapper code that can directly read tuples in the system catalog instead of using SQLs. In addition, DBMS has specialized code to "bootstrap" these catalog tables. 
-
-We can query the DBMS's internal INFORMATION_SCHEMA catalog to get info about the database. INFORMATION_SCHEMA catalog is an ANSI standard set of read-only views that provide information about all the tables, views, columns, and procedures in a database. DBMSs also have non-standard shortcuts to retrieve this information. 
+Users can access the system catalog by querying the INFORMATION_SCHEMA catalog, which is an ANSI standard set of read-only views that provide information about all the objects within a database. Some DBMSs also have non-standard ways of accessing the information stored in the system catalogs. 
 
 Example: *List all the tables in the current database* 
 
