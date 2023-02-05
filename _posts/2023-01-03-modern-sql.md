@@ -9,20 +9,20 @@ toc: true
 toc_sticky: true
 
 date: 2023-01-03
-last_modified_at: 2023-02-04
+last_modified_at: 2023-02-05
 ---
 
 ## Relational Languages
 
-Relational languages refer to a set of mathematical and computational tools used to interact with relational databases. In the early 1970s, Edgar Codd published a seminal paper on relational models and introduced the mathematical notation for executing queries on relational databases. 
+Relational Languages are a type of query language used to manage and interact with relational databases. The concept of relational databases and the relational model was introduced by Edgar Codd in the early 1970s. In his paper, he defined the mathematical notation for how a DBMS (database management system) could execute queries on a relational model database.
 
-In relational databases, users interact with the database using a declarative language such as SQL, in which they specify the desired result rather than the method to compute it. The database management system (DBMS) then determines the most efficient plan to produce that result, often through the use of a **query optimizer**. 
+For the users, the process of querying a relational database is simplified as they only need to specify the desired result using a declarative language such as SQL (Structured Query Language). The DBMS is responsible for determining the most efficient plan to produce the result. High-end relational databases have a sophisticated query optimizer that can rewrite queries and search for the optimal execution strategy.  
 
-Relational algebra is based on concept of **sets**, which are unordered collections of unique elements, while SQL is based on the concept of **bags**, which are unordered collections that allow duplicates.
+Relational algebra is based on the concept of **sets**, which are unordered collections of unique elements. On the other hand, SQL is based on the concept of **bags**, which are unordered collections of elements that allow duplicates.
 
 ## SQL History
 
-SQL is a language for querying relational databases that was first developed in the 1970s by IBM as part of their **DBMS System R**. The language was initially called **SEQUEL** (Structured English Query Language) but was later renamed to just **SQL** (Structured Query Language) after it became the official standard adopted by ANSI and ISO standard groups in 1986. SQL is a declarative language, which means the users specify what data they want to retrieve, not how to retrieve it. The DBMS determines the most efficient way to produce the result.
+SQL (Structured Query Language) is a declarative query language for relational databases that was created in the 1970s by IBM as part of its original DBMS called **System R**. It was first called **"SEQUEL"** (Structured English Query Language) but was later changed to **SQL**. In 1986, ANSI and ISO standard groups officially adopted SQL as the standard database language.
 
 SQL is an evolving language and new features have been added with each new edition of the SQL standard. Below are significant updates released with each new edition of the SQL standard.
 
@@ -32,13 +32,13 @@ SQL is an evolving language and new features have been added with each new editi
 - **SQL:2011** Temporal DBs, Pipelined DML
 - **SQL:2016** JSON, Polymorphic tables
 
-**SQL:2016** is the current standard, and **SQL-92** is the minimum level of SQL support required for a DBMS to claim that it supports SQL. Each vendor may have proprietary extensions, but all are required to follow the SQL standard to some degree. 
+The current standard is **SQL:2016**, while **SQL-92** is the minimum that a DBMS must support to claim they support SQL. However, each vendor may have proprietary extensions beyond the standard.
 
-There are different classes of SQL commands:
+SQL consists of different classes of commands:
 
-1. **Data Manipulation Language (DML)**: SELECT, INSERT, UPDATE, and DELETE statements.
-2. **Data Definition Language (DDL)**: Schema definitions for tables, indexes, views, and other objects.
-3. **Data Control Language (DCL)**: Security, access controls. 
+1. **Data Manipulation Language (DML)**: commands to manipulate data, such as `SELECT`, `INSERT`, `UPDATE`, and `DELETE`.
+2. **Data Definition Language (DDL)**: commands to define the schema for tables, indexes, views, and other objects.
+3. **Data Control Language (DCL)**: commands for security and access control.
 
 All examples for SQL in this post will use the following database that models a simple college. 
 
@@ -92,7 +92,17 @@ CREATE TABLE enrolled (
 
 ## Joins
 
-Joining is a process in SQL used to combine columns from two or more tables into a new table. This process allows the execution of queries that involve data stored in multiple tables by combining the relevant information from each table. The result is a new table that includes the columns selected from the original tables, and the rows in the new table correspond to the matching rows from the original tables. 
+A join operation combines the rows from two or more tables into a single result set. The join is performed based on the values in a common column, known as a join condition, between the tables being joined. The resulting table consists of columns from both tables and only includes rows where the join condition is true.
+
+Joins are essential for retrieving data that is stored in multiple tables and are a fundamental aspect of relational databases. There are several types of joins, each with its own use case:
+
+1. Inner Join: Returns only the rows that have matching values in both tables being joined.
+2. Left Join or Left Outer Join: Returns all the rows from the left table (table1) and the matching rows from the right table (table2). If there's no match, the result will have `NULL` values for the columns from the right table.
+3. Right or Right Outer Join: Returns all the rows from the right table (table2) and the matching rows from the left table (table1). If there's no match, the result will have `NULL` values for the columns from the left table.
+4. Full Join or Full Outer Join: Returns all rows from both tables, with `NULL` values in the columns where there's no match.
+5. Cross Join: Returns the Cartesian product of the two tables, meaning every row in table1 is combined with every row in table2.
+
+The example below shows an inner join between the `enrolled` and `student` tables based on the join condition `e.sid = s.sid`, where `e` and `s` are aliases for the `enrolled` and `student` tables, respectively.
 
 Example: *Which students got an A in 15-721?*
 
@@ -105,13 +115,15 @@ SELECT s.name
 
 ## Aggregates
 
-Aggregate functions are SQL functions that take in a bag of tuples (rows) and return a single scalar value. These functions are used in the SELECT statement and can only appear in the SELECT output list.
+Aggregate functions are a set of functions in SQL that takes in a set of tuples (or rows) from a table and produce a single scalar value as output. The aggregate functions that are most commonly used in SQL include:
 
-- AVG(COL) : The average of values in COL.
-- MIN(COL) : The minimum of values in COL.
-- MAX(COL) : The maximum of values in COL..
-- SUM(COL) : The sum of values in COL.
-- COUNT(COL) : The number of tuples in the relation
+- `AVG(COL)` : The average value of `COL`.
+- `MIN(COL)` : The minimum value of `COL`.
+- `MAX(COL)` : The maximum value of `COL`.
+- `SUM(COL)` : The sum of the values in `COL`.
+- `COUNT(COL)` : The number of tuples in `COL`.
+
+Aggregate functions can only be used in the `SELECT` output list, meaning they are used to produce a single value for each set of rows in the output. 
 
 Example: *Get the number of students with a '@cs' login*
 
@@ -133,7 +145,7 @@ SELECT COUNT(1) AS cnt FROM student WHERE login LIKE '%@cs';
 SELECT COUNT(1+1+1) AS cnt FROM student WHERE login LIKE '%@cs';
 ```
 
-A single SELECT statement can contain multiple aggregates:
+A `SELECT` statement can contain multiple aggregates. 
 
 Example: *Get the number of students <u>and their average GPA</u> that have a '@cs' login*
 
@@ -145,7 +157,7 @@ SELECT AVG(gpa), COUNT(sid) FROM student WHERE login LIKE '%@cs';
 |--------|----------|
 |3.8|3|
 
-Some aggregation functions (e.g., COUNT, SUM, AVG) support the use of DISTINCT keyword to get unique values.
+It's also possible to use the DISTINCT keyword with some aggregate functions (e.g., `COUNT`, `SUM`, `AVG`) to calculate the aggregate value based only on unique values. 
 
 Example: *Get the number of <u>unique</u> students that have a '@cs' login.* 
 
@@ -157,17 +169,18 @@ SELECT COUNT(DISTINCT login) FROM student WHERE login LIKE '%@cs';
 |---------------------|
 |3|
 
-The output of other columns outside an aggregate function is undefined (The value of e.cid is undefined below).
+The output of other columns outside an aggregate is undefined.
 
 Example: *Get the average GPA of students in each course.*
 
 ```sql
+-- The value of e.cid is undefined below
 SELECT AVG(s.gpa), e.cid
   FROM enrolled AS e, student AS s
  WHERE e.sid = s.sid;
 ```
 
-The GROUP BY clause is used to project tuples into subsets based on specified columns and calculate aggregates against each subset. 
+The `GROUP BY` clause is used to project tuples into subsets based on specified columns and calculate aggregates against each subset. 
 
 ```sql
 SELECT AVG(s.gpa), e.cid
@@ -178,7 +191,7 @@ SELECT AVG(s.gpa), e.cid
 
 ![group by](https://user-images.githubusercontent.com/73024925/210188577-5e4edd46-1ad3-4930-82a2-1686b72f931a.png)
 
-Non-aggregated values in the SELECT output clause must appear in the GROUP BY clause. 
+When grouping rows using the `GROUP BY` clause, it's important to keep in mind that non-aggregated values in the `SELECT` output clause must appear in the `GROUP BY` clause. 
 
 ```sql
 SELECT AVG(s.gpa), e.cid, s.name
@@ -187,7 +200,7 @@ SELECT AVG(s.gpa), e.cid, s.name
  GROUP BY e.cid, s.name;
 ```
 
-The HAVING clause is used to filter the results of aggregates, similar to the WHERE clause. The syntax of the HAVING clause is similar to the WHERE clause, but it applies to aggregates instead of individual tuples. 
+The `HAVING` clause can be used to filter the output results based on an aggregate calculation, similar to the way a `WHERE` clause filters rows based on non-aggregate values. The `HAVING` clause acts like a `WHERE` clause for a `GROUP BY`. 
 
 Example: *Get the set of courses in which the average student GPA is greater than 3.9.*
 
@@ -201,7 +214,7 @@ HAVING avg_gpa > 3.9;
 
 ![having](https://user-images.githubusercontent.com/73024925/210188701-d8d7164d-0f41-4dc5-b2da-91e5f17d40a1.png)
 
-Many major database systems support the above query syntax but is not compliant with the SQL standard. To make the query standard compliant, we must repeat the use of AVG(s.gpa) in the body of the HAVING clause.
+It's important to note that while many major database systems support the use of the `HAVING` clause, the above syntax may not be compliant with the SQL standard. To make a query standard-compliant, the use of the aggregate function must be repeated in the `HAVING` clause (e.g., use `AVG(s.gpa)` instead of `avg_gpa`).
 
 ```sql
 SELECT AVG(s.gpa) AS avg_gpa, e.cid
@@ -213,7 +226,9 @@ HAVING AVG(s.gpa) > 3.9;
 
 ## String Operations
 
-String operations refer to the handling of strings in SQL. The SQL standard says that strings are case-sensitive and single quotes only, but different DBMSs may have different implementations, as shown below.
+In SQL, strings are a data type that represent sequences of characters. String operations are actions performed on string data, such as manipulating and comparing strings. The SQL standard defines how strings should be treated in SQL, including their case sensitivity and the type of quotes used to define them. However, DBMSs can vary in their implementation of string operations.
+
+SQL-92, the original SQL standard, states that strings are **case-sensitive** and can only be defined using **single quotes**. Some DBMSs, such as PostgreSQL and Oracle, follow this standard. Other DBMSs, such as MySQL and SQLite, have different implementations. For example, MySQL allows strings to be defined using single or double quotes and it considers strings to be case-insensitive by default.
 
 | | String Case | String Quotes |
 |-| ----------- | ------------- |
@@ -234,11 +249,11 @@ WHERE UPPER(name) = UPPER('KaNyE')
 WHERE name = 'KaNyE'
 ```
 
-There are functions to manipulate strings.
+SQL provides several functions to manipulate strings, including pattern matching, string functions, and string concatenation. 
 
-**Pattern Matching**: The LIKE keyword is for string matching in predicates.
-- "%" matches any substring (including an empty string).
-- "_" matches any one character.
+**Pattern Matching** is used to compare strings based on a pattern. The `LIKE` keyword is used to perform pattern matching.
+- `%` matches any substring (including an empty string).
+- `_` matches any individual character.
 
 ```sql
 SELECT * FROM enrolled AS e
@@ -250,7 +265,7 @@ SELECT * FROM student AS s
  WHERE s.login LIKE '%@c_'
 ```
 
-**Standard String Functions**: SQL-92 defines string functions. Many DBMSs also implement other functions in addition to those in the standard. Examples of standard string functions include SUBSTRING(S, B, E) and UPPER(S).
+**String Functions** is used to perform operations on strings, such as finding substrings (e.g., `SUBSTRING(S, B, E)`), converting strings to upper or lower case (e.g., `UPPER(S)`), and more.
 
 ```sql
 SELECT SUBSTRING(name, 1, 5) AS abbrv_name
@@ -262,7 +277,7 @@ SELECT * FROM student AS s
  WHERE UPPER(s.name) LIKE 'KAN%'
 ```
 
-**Concatenation**: SQL standard says to use two vertical bars ("||") to concatenate two or more strings together into a single string. 
+**Concatenation** is the process of combining two or more strings into a single string. In SQL, this is typically done using the `||` operator in SQL-92 and some other DBMSs, and using the `+` operator in MSSQL, and the `CONCAT` function in MySQL. 
 
 ```sql
 -- SQL-92
@@ -284,7 +299,7 @@ SELECT name FROM student
 
 ## Date and Time Operations
 
-Date and time operations in SQL are used to manipulate and modify date/time attributes in a database. These operations can be used both in the output and in predicates of a query. The syntax for date and time operations varies greatly between different SQL systems, so it is important to consult the specific documentation of the DBMS being used. 
+Date and time operations are used in SQL to manipulate and modify date and time attributes in a database. They are used both in output and predicates to perform different operations on date and time values. It is important to note that the syntax for date and time operations varies widely across different DBMSs and it's essential to understand the syntax for the specific DBMS you are working with. 
 
 Example: *Get the number of days since the beginning of the year*
 
@@ -310,9 +325,9 @@ SELECT DATEDIFF(DAY, DATE('2023-01-01'), DATE('2023-01-02'));
 
 ## Output Redirection
 
-In database systems, output redirection allows you to store the result of a query in another table, rather than having it returned to the client (e.g., terminal). There are two ways to do this:
+Output redirection refers to the ability of a DBMS to store the results of a query in a table instead of returning the results to the client (e.g., terminal). This can be useful if the result set is large or if the result needs to be used in subsequent queries. There are two ways to redirect output in SQL:
 
-- New Table: You can store the results in a new permanent table that does not exist yet. The new table will have the same number of columns and data types as the input query.   
+1. New Table: To create a new table and store the results of a query in it, the user can use the `INTO` clause in the `SELECT` statement. The syntax of the `INTO` clause varies across different DBMSs. Some DBMSs also allow you to create a temporary table that will be automatically deleted when the session is closed.
 
 ```sql
 -- SQL-92
@@ -332,7 +347,7 @@ SELECT DISTINCT cid
   FROM enrolled;
 ```
 
-- Existing Table: You can insert the results of a query into a table that already exists in the database. The target table must have the same number of columns and data types as the query, but the column names do not have to match. Different DBMSs have different options and syntax to handle cases of integrity violations, such as invlaid duplicates.
+- Existing Table: To insert the results of a query into an existing table, the user can use the `INSERT INTO` statement. The target table must have the same number of columns and data types as the result set, but the column names do not have to match. Different DBMSs have different options and syntax for handling integrity violations, such as invalid duplicates. 
 
 ```sql
 -- SQL-92
@@ -342,7 +357,7 @@ INSERT INTO CourseIds
 
 ## Output Control
 
-Output control in SQL allows you to manage and manipulate the presentation of the query results. The results of a SQL query are unordered by default, but you can sort the results using the ORDER by clause. The ORDER by clause takes one or more columns as arguments and sorts the query results based on the values in those columns.
+Output control in SQL refers to the manipulation of the results returned by a query. By default, the output is unordered and the results are returned as they are produced by the DBMS. However, the `ORDER BY` clause allows you to sort the results by the values in one or more columns. 
 
 ```sql
 SELECT sid, grade FROM enrolled WHERE cid = '15-721'
@@ -361,14 +376,14 @@ SELECT sid, grade FROM enrolled WHERE cid = '15-721'
 |53650|B|
 |53666|D|
 
-By default, the sort order is ascending (ASC), but you can specify DESC to sort in descending order.
+The sort order is ascending by default but can be reversed to descending using the `DESC` keyword.
 
 ```sql
 SELECT sid, grade FROM enrolled WHERE cid = '15-721'
  ORDER BY grade DESC;
 ```
 
-You can also use multiple ORDER BY clauses to break ties or perform more complex sorting.
+If two or more tuples have the same value in the sort column, you can use additional `ORDER BY` clauses to break the tie. 
 
 ```sql
 SELECT sid, grade FROM enrolled WHERE cid = '15-721'
@@ -387,14 +402,14 @@ SELECT sid, grade FROM enrolled WHERE cid = '15-721'
 |53123|A|
 |53334|A|
 
-You can also use any expression in the ORDER BY clause.
+You can also use any arbitrary expression in the `ORDER BY` clause to sort the results.
 
 ```sql
 SELECT sid, grade FROM enrolled WHERE cid = '15-721'
  ORDER BY UPPER(grade) DESC, sid + 1 ASC;
 ```
 
-Additionally, you can limit the number of tuples returned in the output using the LIMIT clause. The LIMIT clause takes a single argument, which is the maximum number of tuples to return in the output.
+The `LIMIT` clause allows you to control the number of tuples returned in the result. You can specify the maximum number of tuples to return, for example, `LIMIT 10` returns the first 10 tuples. 
 
 ```sql
 SELECT sid, name FROM student WHERE login LIKE '%@cs'
@@ -407,36 +422,36 @@ SELECT TOP 10 sid, name FROM student
  WHERE login LIKE '%@cs'
 ```
 
-You can also provide an offset using the OFFSET clause to return a range of results. 
+You can also provide an offset to specify a range of tuples to return. For example, `LIMIT 20 OFFSET 10` returns the 11th to 30th tuples.
 
 ```sql
 SELECT sid, name FROM student WHERE login LIKE '%@cs'
  LIMIT 20 OFFSET 10;
 ```
 
-Unless you use the ORDER BY clause with LIMIT, the DBMS may produce different tuples in the result on each query invocation because the relational model does not impose an ordering. 
+However, if you don't use the `ORDER BY` clause with a `LIMIT`, the DBMS may produce different results each time you run the query because the relational model does not impose an ordering.
 
 ## Nested Queries
 
-A nested query is a query inside another query used to execute complex logic. The inner query can access attributes from the outer query but not vice versa. 
+A nested query is a query within another query in a DBMS. The outer query acts as the primary query, and the inner query(s) are used to execute more complex logic. These inner queries can appear in different parts of the primary query like the `SELECT` output targets, the `FROM` clause, and the `WHERE` clause. 
 
-Inner queries can appear in almost any part of a query:
-
-1. SELECT Output Targets:
+1. `SELECT` Output Targets:
     ```sql
     SELECT (SELECT 1) AS one FROM student;
     ```
-2. FROM Clause:
+2. `FROM` Clause:
     ```sql
     SELECT name
       FROM student AS s, (SELECT sid FROM enrolled) AS e
      WHERE s.sid = e.sid;
     ```
-3. WHERE Clause:
+3. `WHERE` Clause:
     ```sql
     SELECT name FROM student
      WHERE sid IN (SELECT sid FROM enrolled);
     ```
+
+The scope of the outer query is included in the inner query but not the other way around, meaning the inner query can access attributes from the outer query, but the outer query cannot access the attributes from the inner query.
 
 Example: *Get the names of students that are enrolled in '15-445'*
 
@@ -460,14 +475,14 @@ Note that sid has different scope depending on where it appears in the query. Th
 
 ### Nested Query Results Expressions
 
-Nested queries can have different results expressions:
+Nested queries can have different results expressions such as `ALL`, `ANY`, `IN`, and `EXISTS`:
 
-- ALL: The expression must be satisfied for all rows in the sub-query.
-- ANY: The expression must be satisfied for at least one row in the sub-query.
-- IN: Equivalent to =ANY().
-- EXISTS: At least one row is returned without comparing it to an attribute in the outer query. 
+- `ALL`: The expression must be satisfied for all the rows in the sub-query.
+- `ANY`: The expression must be satisfied for at least one row in the sub-query.
+- `IN`: Equivalent to `=ANY()`.
+- `EXISTS`: At least one row must be returned without comparing it to any attribute in the outer query. 
 
-Example: *Find the student record with the highest id that is enrolled in at least one course.*
+For example, consider a scenario where you want to find the student record with the highest id who is enrolled in at least one course. To solve this problem, you can use a nested query. You can first write an inner query to get the maximum student id from the enrolled table, and then use that in the outer query to get the student record with the highest id.
 
 ```sql
 SELECT sid, name FROM student
@@ -496,7 +511,7 @@ SELECT student.sid, name
 |---|----|
 |53688|Bieber|
 
-Example: *Find all courses that have no students enrolled in it.*
+Another example is to find all courses that have no students enrolled in it. To solve this problem, you can use a nested query with the `EXISTS` expression. You can write an inner query to select all records from the enrolled table, and then use the `NOT EXISTS` expression in the outer query to check if the course id does not exist in the enrolled table. If it does not exist, it means that there are no students enrolled in that course.
 
 ```sql
 SELECT * FROM course
@@ -512,14 +527,34 @@ SELECT * FROM course
 
 ## Window Functions
 
-Window functions are used to perform a calculation on a set of related tuples, similar to an aggregation but without grouping the tuples into a single output tuple. The calculation is performed using a "sliding" window approach, where the window size is determined by the specification in the OVER clause.  
+Window functions are a type of SQL function that perform a "sliding" calculation across a set of related tuples. Unlike traditional aggregation functions, which group tuples into a single output tuple, window functions keep the tuples separate and calculate the result for each individual tuple.
+
+In SQL syntax, a window function is written as follows:
 
 ```sql
 SELECT ... FUNC-NAME(...) OVER (...)
   FROM tableName
 ```
 
-**Grouping**: The OVER clause is used to define the grouping of tuples and the order in which they are processed. It can contain a PARTITION BY clause that determines the grouping of the tuples based on the specified column. It can also contain an ORDER BY clause that determines We can use PARTITION BY to determine the group.
+The `FUNC-NAME` is the name of the window function, which can be any aggregation function or a special window function. There are two special window functions, `ROW_NUMBER` and `RANK`.
+
+1. `ROW_NUMBER`: Assign a unique number to each tuple in the set.
+2. `RANK`: Assign a rank based on the order of the tuples after sorting. 
+
+```sql
+SELECT *, ROW_NUMBER() OVER() AS row_num
+  FROM enrolled
+```
+
+|sid|cid|grade|row_num|
+|---|---|-----|-------|
+|53666|15-445|C|1|
+|53688|15-721|A|2|
+|53688|15-826|B|3|
+|53655|15-445|B|4|
+|53666|15-721|C|5|
+
+The `OVER` clause is used to specify the grouping and ordering of the tuples. The `PARTITION BY` clause is used to determine the grouping, and the `ORDER BY` clause is used to determine the ordering of the results.
 
 ```sql
 SELECT cid, sid,
@@ -536,34 +571,14 @@ SELECT cid, sid,
 |15-721|53666|2|
 |15-826|53688|1|
 
-The OVER clause can also contain an ORDER BY clause that determines the order in which the tuples are processed. 
-
 ```sql
 SELECT *, ROW_NUMBER() OVER (ORDER BY cid)
-  FROM enrolled ORDER BY cid;
+  FROM enrolled;
 ```
 
-**Functions**: The window function can be any aggregation function discussed earlier. There are also two special window functions:
+It is important to note that `ROW_NUMBER` and `RANK` have different calculation sequences. `ROW_NUMBER` is computed before the sorting, whereas `RANK` is computed after the sorting. This can affect the results in certain cases, such as when there are ties in the data. 
 
-1. ROW_NUMBER: Assign a unique number to each tuple in the set.
-2. RANK: Assign a rank based on the order of the tuples after sorting. 
-
-```sql
-SELECT *, ROW_NUMBER() OVER() AS row_num
-  FROM enrolled
-```
-
-|sid|cid|grade|row_num|
-|---|---|-----|-------|
-|53666|15-445|C|1|
-|53688|15-721|A|2|
-|53688|15-826|B|3|
-|53655|15-445|B|4|
-|53666|15-721|C|5|
-
-**IMPORTANT**: The RANK function is computed after sorting, whereas the ROW_NUMBER function is computed before sorting.
-
-Example: *Find the student with the <u>second</u> highest grade for each course.*
+An example use case of a window function is finding the student with the second highest grade for each course. This can be achieved by using the `RANK` function, which assigns a rank to each tuple based on the value of the grade column. The query is written as follows:
 
 ```sql
 SELECT * FROM (
@@ -573,39 +588,24 @@ SELECT * FROM (
 WHERE ranking.rank = 2
 ```
 
+The query first selects all tuples from the enrolled table and calculates the rank for each tuple using the RANK function, partitioning by the cid column and ordering by the grade column in ascending order. The resulting ranking is then filtered to return only the tuples with a rank of 2.
+
 ## Common Table Expressions
 
-A Common Table Expression (CTE) is a temporary result set that can be referred to within a SELECT statement. It is essentially a named subquery that can be used within the main query. CTEs provide a way to simplify complex SQL queries by breaking them down into smaller, more manageable parts. 
+Common Table Expressions (CTEs) are a way of defining a temporary result set within a SQL query. They are similar to views, but unlike views, they only exist for the duration of a single query. CTEs are useful in writing more complex SQL queries by breaking them down into smaller, more manageable pieces.
 
-THE WITH clause defines a CTE by binding the output of an inner query to a temporary result with the given name.
+A CTE is defined using the `WITH` clause, followed by a `SELECT` statement that defines the contents of the CTE. The CTE name is given after the `WITH` keyword, followed by the column names in parentheses (if any). The CTE's `SELECT` statement is followed by the `AS` keyword, and the result set of the `SELECT` statement is then bound to the CTE name.
 
-Example: *Generate a CTE called cteName that contains a tuple with a single attribute set to "1". Select all attributes from this CTE.*
+For example, the following query defines a CTE named `cteName` with a single column named `col1` that contains the value `1`.
 
 ```sql
-WITH cteName AS (
+WITH cteName (col1) AS (
    SELECT 1
 )
 SELECT * FROM cteName
 ```
 
-We can bind/alias output columns to names before the AS keyword:
-
-```sql
-WITH cteName (col1, col2) AS (
-   SELECT 1, 2
-)
-SELECT col1 + col2 FROM cteName
-```
-
-```sql
---Postgres
-WITH cteName (colXXX, colXXX) AS (
-   SELECT 1, 2
-)
-SELECT * FROM cteName
-```
-
-A single query can contain multiple CTEs, each with their own SELECT statement:
+Multiple CTEs can be defined within the same query, separated by commas.
 
 ```sql
 WITH cte (col1) AS (SELECT 1), cte2 (col2) AS (SELECT 2)
@@ -615,16 +615,16 @@ SELECT * FROM cte1, cte2;
 Example: *Find the student record with the highest id that is enrolled in at least one course.*
 
 ```sql
-WITH RECURSIVE cteSource (counter) AS (
+WITH cteSource (counter) AS (
    SELECT MAX(sid) FROM enrolled
 )
 SELECT name FROM student, cteSource
  WHERE student.sid = cteSource.maxId;
 ```
 
-Adding the RECURSIVE keyword to a CTE allows it to reference itself, enabling recursion in SQL queries.
+CTEs can also be recursive, meaning that the result set of the CTE can refer to itself. To define a recursive CTE, the `WITH` keyword is followed by the keyword `RECURSIVE`, followed by the `SELECT` statement that defines the CTE. 
 
-Example: *Print the sequence of numbers from 1 to 10.*
+For example, the following query defines a recursive CTE named `cteSource` that generates a sequence of numbers from 1 to 10:
 
 ```sql
 WITH RECURSIVE cteSource (counter) AS (
@@ -635,6 +635,8 @@ WITH RECURSIVE cteSource (counter) AS (
 )
 SELECT * FROM cteSource
 ```
+
+The `UNION ALL` clause is used to join the current result set with the result set of the CTE itself.
 
 ## References
 [1] [CMU Intro to Database Systems / Fall 2022, 02 - Modern SQL](https://www.youtube.com/watch?v=II5qNuxfSoo)

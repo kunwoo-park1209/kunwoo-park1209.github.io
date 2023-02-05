@@ -3,13 +3,13 @@ title : "[CMU Database Systems] 07. B+Tree Index"
 categories:
   - CMU Database Systems
 tags:
-  - [database]
+  - [database system]
 
 toc: true
 toc_sticky: true
 
 date: 2023-01-30
-last_modified_at: 2023-01-30
+last_modified_at: 2023-02-05
 ---
 ## Table Indexes
 
