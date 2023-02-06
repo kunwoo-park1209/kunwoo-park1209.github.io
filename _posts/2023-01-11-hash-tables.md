@@ -48,28 +48,28 @@ There are several well-known hash functions, including CRC-64, MurmurHash, Googl
 
 ## Static Hashing Schemes
 
-Static Hashing Schemes are methods of data storage in a database management system (DBMS) where the hash table size is fixed. Unfortunately, this means that if the DBMS runs out of storage space in the hash table, it has to rebuild a larger hash table from scratch, which is very expensive. Typically the new hash table is twice the size of the original one. 
+Static Hashing Schemes are a method of data storage in a DBMS where the size of the hash table is fixed. In static hashing, the size of the hash table cannot grow dynamically to accommodate more data. This means that if the DBMS runs out of space in the hash table, it has to rebuild a larger hash table from scratch, which is a time-consuming and expensive process.
 
-It is important to avoid collisions of a hashed key to reduce the number of wasteful comparisons. Typically, we use twice the number of expected elements as the number of slots.
+To reduce the likelihood of collisions (when multiple keys are hashed to the same slot), the number of slots in the hash table is usually set to be twice the number of expected elements. 
 
-The following assumptions usually do not hold in reality:
+However, this method relies on several assumptions that do not always hold in reality:
 
-1. The number of elements is known ahead of time and fixed. 
+1. The number of elements is known ahead of time and is fixed. 
 2. Keys are unique.
-3. There exists a perfect hash function. 
+3. A perfect hash function exists
 
-Therefore, the hash function and hashing scheme have to be chosen carefully.
+Therefore, it is important to choose the hash function and hashing scheme carefully. If the assumptions about the data are not met, the hash function may produce collisions, leading to inefficient data retrieval and storage operations.
 
 ### Linear Probe Hashing
 
-Linear probe hashing is the simplest and fastest hashing scheme. In this method, the hash function maps keys to slots in a single circular buffer of array slots. When there is a collision, the system linearly searches the adjacent slots until it finds a free slot. During lookups, the system checks the slot the key hashes to and linearly searches until it finds the desired entry. If we reach an empty slot or iterate over every slot in the hash table, the key is not in the table. Note that this means we have to store both the key and value in the slot to check if an entry is the desired one. 
+Linear probe hashing is a type of static hashing scheme where keys are mapped to slots in a single circular buffer or array of slots. The hash function is used to determine the slot for a given key. If there is a collision, meaning that two or more keys map to the same slot, the system linearly searches the adjacent slots until it finds a free slot to store the key and its value. During lookups, the system checks the slot the key hashes to and then performs a linear search until it finds the desired entry. If the system reaches an empty slot or iterates over every slot in the hash table without finding the desired entry, it means that the key is not in the table. Note that this means we have to store both the key and value in the slot to check if an entry is the desired one. 
 
 ![linear_probe_hashing](https://user-images.githubusercontent.com/73024925/211791193-1ea7a543-488f-4eab-a148-387696ead250.png)
 
-Deletions are more complex than insertions. We must be careful about removing the entry from the slot, as this may prevent future lookups from finding entries that have been put below the now empty slot. There are two solutions to this problem:
+Deletions in linear probe hashing can be more complex than insertions. Removing an entry from a slot may prevent future lookups from finding entries that have been placed below the now empty slot. There are two solutions to this problem:
 
 - The most common approach is to use "tombstones", marking the entry as deleted instead of removing it. 
-- The other option is to rehash the adjacent data until meeting the first empty slot to fill the deleted slot. However, this is rarely implemented in practice. 
+- The other option is to rehash the adjacent data until the first empty slot is met to fill the deleted slot, but this is rarely implemented in practice.
 
 ![linear_probe_hashing_tombstone](https://user-images.githubusercontent.com/73024925/211793252-bd8d0a45-f24f-464b-bd08-2530500fbcb1.png)
 
@@ -82,9 +82,11 @@ Deletions are more complex than insertions. We must be careful about removing th
 
 ### Robin Hood Hashing
 
-Robin hood hashing is a variation of linear probe hashing that aims to reduce the maximum distance of each key from its optimal position (i.e., the original slot it was hashed to) in the hash table. This strategy steals slots from "rich" keys and gives them to "poor" keys.
+Robin Hood hashing aims to resolve the primary problem of linear probe hashing, which is the clustering of entries and the long search chains that may form. In Robin Hood hashing, the length of the search chain is proportional to the "distance" of the key from its optimal slot. The strategy of Robin Hood hashing is to reduce the maximum distance of each key by "stealing" slots from keys that are closer to their optimal slots and giving those slots to keys that are farther away. This helps to distribute keys evenly in the hash table and reduces the likelihood of long search chains.
 
-Each entry also records the "distance" (i.e., the number of positions) they are from their optimal position. Then, on each insert, if the key being inserted is farther away from its optimal position at the current slot than the current entry's distance, the key takes the slot of the old entry and continues trying to insert the old entry farther down the table. 
+On each insert, the system checks the "distance" of the current entry from its optimal slot and compares it with the distance of the key being inserted. If the key being inserted has a larger distance, it takes the slot and the current entry is inserted at the next slot.  
+
+Robin Hood hashing is known for its better performance compared to linear probe hashing in terms of average search time and the distribution of keys. However, it requires more memory as each entry must store its "distance" from its optimal slot, and it also has a higher insertion cost.
 
 ![robin_hood_hashing](https://user-images.githubusercontent.com/73024925/211795372-5e54c4da-6030-41cc-8c41-266a82c8f376.png)
 ![robin_hood_hashing2](https://user-images.githubusercontent.com/73024925/211795375-c00477ab-1383-4c1b-a056-75be60862303.png)
