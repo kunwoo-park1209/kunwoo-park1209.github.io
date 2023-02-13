@@ -11,62 +11,69 @@ toc_sticky: true
 date: 2023-01-30
 last_modified_at: 2023-02-05
 ---
+
 ## Table Indexes
 
-Several data structures are inside a database system, such as internal meta-data, core data storage, temporary data structures, or table indexes.
+An **index** is a data structure used by a database management system to improve the speed of operations on a table. It's a copy of a subset of the columns in the table and is organized in a way that allows for quick access to the data based on the values in the indexed columns. The goal of an index is to minimize the need for a sequential scan of the entire table and instead allow the DBMS to access specific rows more efficiently.
 
-A **table index** is a replica of a subset of a table's attributes that is organized and sorted for efficient access using those attributes. So instead of performing a sequential scan, the DBMS can look up the table index's auxiliary data structure to find tuples more quickly. In addition, the DBMS ensures that the contents of the table and the index are logically synchronized.
-
-The DBMS's job is to determine the best indexes to execute queries. There exists a trade-off between the number of indexes to create per database. Although more indexes make looking up queries faster, indexes also use storage and require maintenance. 
+When a query is executed, the DBMS examines the available indexes and determines which ones to use to get the data it needs as efficiently as possible. However, creating too many indexes can consume a significant amount of storage and require additional maintenance, as each time the data in the table is modified, the corresponding indexes also have to be updated. This trade-off means that the DBMS must carefully consider which indexes to create and use in order to strike a balance between query performance and resource usage.
 
 ## B+Tree
 
-A **B+Tree** is a self-balancing tree data structure that keeps data sorted and allows searches, sequential access, insertions, and deletions in **O(log(n))**. It is a binary search tree node can have more than two children. It is an optimized data structure for disk-oriented DBMSs that read and write large data blocks. 
+A **B+Tree** is a type of self-balancing tree data structure that is designed to provide efficient access, search, insertion, and deletion of data. It is optimized for disk-oriented database management systems (DBMSs) that handle large data blocks. The structure of a B+Tree is such that it allows for logarithmic O(log(n)) time complexity for these operations, making it ideal for use in databases.
 
-Almost every modern DBMS that supports order-preserving indexes uses a B+Tree. There is a specific data structure called a **B-Tree**, but people also use the term to refer to a class of balanced tree data structures B-Tree (1971), B+Tree (1973), B*Tree (1977?), and $B^{link}$-Tree (1981). The primary difference between the original B-Tree and the B+Tree is that the B-Tree stores keys and values in **all nodes** so that we can access the value without reaching the leaf node, while B+ trees store values **only in leaf nodes**. Modern B+Tree implementations combine features from other B-Tree variants, such as the sibling pointers used in the ^{link}$-Tree.
+B+Trees are binary search trees where a node can have more than two children, making them different from their original counterpart, the B-Tree, which stores keys and values in **all nodes** so that the value can be accessed without reaching the leaf node. In contrast, B+Trees store values **only in leaf nodes**. Most modern B+Tree implementations incorporate features from other B-Tree variants, such as sibling pointers used in the B-link-Tree.
 
 ![B+Tree](https://user-images.githubusercontent.com/73024925/212060192-55808eb4-0dd4-4c99-abf2-d5b740feebb2.png)
 
-Formally, a B+Tree is an **M**-way search tree (where M represents the maximum number of children a node can have) with the following properties:
+A B+Tree is an M-way search tree, where M represents the maximum number of children that a node can have.
 
-- It is perfectly balanced (i.e., every leaf node is at the same depth in the tree).
-- Every node other than the root is at least half full (**M/2-1 <= num of keys <= M-1**).
-- Every inner node with **k** keys has **k+1** non-null children. 
+A B+Tree have the following properties:
 
-Every B+Tree node contains an array of key/value pairs. The keys are derived from the table attribute(s) that the index is based. The values will differ based on whether a node is an **inner node** or a **leaf node**. For inner nodes, the value array will contain pointers to other nodes. Two approaches for leaf node values are **record IDs** and **tuple data**. Record IDs refer to a pointer to the location of the tuple. On the other hand, leaf nodes that have tuple data store the actual contents of the tuple in each node (i.e., index-organized table). If we use the second approach, secondary indexes must store the record ID as their values because otherwise, we are unnecessarily duplicating tuple data. 
+- It is a perfectly balanced tree, meaning all leaf nodes are at the same depth in the tree. 
+- Every node other than the root is at least half full with the number of keys raning from **M/2-1 to M-1**
+- Each inner node with **k** keys has **k+1** non-null children. 
 
-Though it is not necessary according to the definition of the B+Tree, the arrays at every node are usually sorted by the keys.
+Every node in a B+Tree contains an array of key/value pairs. The keys in the node are derived from the table attribute(s) that the index is based on. The values in the nodes can either be record IDs or actual tuple data, depending on the implementation. For inner nodes, the values are pointers to other nodes, while leaf nodes can store either record IDs or tuple data. If tuple data is stored in leaf nodes, secondary indexes must store the record IDs as their values to avoid duplication.
 
-Conceptually, the keys on the inner nodes can be guide posts because t hey guide the tree traversal but do the keys (and hence their values) on the leaf nodes, meaning that you could potentially have a key in an inner node (as a guide post) not found on the leaf nodes. However, note that conventionally inner nodes possess only those keys in the leaf nodes. 
+It is common for the key/value arrays at each node to be sorted by the keys, though this is not a requirement of the B+Tree. The keys on the inner nodes serve as guide posts for tree traversal, but do not necessarily represent the keys found in the leaf nodes. However, it is conventional for inner nodes to possess only those keys found in the leaf nodes.
 
 Visualization: [David Galles - University of San Fransisco]( https://www.cs.usfca.edu/~galles/visualization/BPlusTree.html)
 
 ### Insertion
 
-To insert a new entry into a B+Tree, one must traverse down the tree and use the inner nodes to figure out which leaf node to insert the key. 
+When inserting a new entry into a B+Tree, there are a few steps that must be followed:
 
-1. Find the correct leaf node $L$
-2. Insert data entry into $L$ in sorted order.
-    - If L has enough space, the operation is done.
-    - Otherwise split $L$ keys into $L$ and a new node $L_2$. Redistribute entries evenly, and copy up the middle key. Insert index entry pointing to $L_2$ into the parent of $L$.
-3. To split an inner node, redistribute entries evenly, but push up the middle key. 
+1. Finding the correct leaf node $L$: Before inserting the new key/value pair, it is necessary to find the correct leaf node where the new entry should be inserted. This is done by starting from the root node and using the keys in the inner nodes as guide posts to traverse down the tree until we reach the correct node.
+
+2. Inserting the new data entry into $L$: Once the correct leaf node has been found, the new key/value pair is inserted into the leaf node. If the leaf node has enough space to accommodate the new entry, the operation is completed. 
+
+3. Handling overflow in the leaf node $L$: If the leaf node does not have enough space, it must be split into two separate nodes to maintain the balance of the tree. The entries in the original leaf node $L$ are redistributed evenly into two separate nodes, with one node becoming the original leaf node $L$ and the other node being a new leaf node $L_2$. The middle key is copied up and inserted into the parent node as a new index entry pointing to the new leaf node $L_2$. 
+
+4. Splitting an inner node: If an inner node overflows, the same procedure is followed as for leaf nodes. The entries are redistributed evenly into two separate nodes and the middle key is pushed up to the parent node. This process continues until the root node is split, in which case a new root node must be created. 
 
 ### Deletion
 
-Whereas in inserts, we occasionally had to split leaves when the tree got too full, if a deletion causes a tree to be less than half-full, we must merge to re-balance the tree. 
+Deletion in a B+Tree requires the following steps:
 
-1. Find the correct leaf node $L$
-2. Remove the entry:
-    - If $L$ is at least half full, the operation is done.
-    - Otherwise, you can try to redistribute, borrowing from a sibling (adjacent node with the same parent as $L$).
-    - If redistribution fails, merge $L$ and sibling.
-3. If a merge occur, we must delete the entry (pointing to $L$ or sibling) from the parent of $L$.
+1. Finding the correct leaf node $L$: The first step in deleting an entry from a B+Tree is to locate the leaf node that contains the entry. This is done by traversing the inner nodes using the keys as guide posts.
+
+2. Removing the entry: Once the correct leaf node $L$ has been found, the next step is to remove the entry from the leaf node. If the leaf node is at least half full, the operation is completed. However, if the leaf node becomes less than half full as a result of the deletion, then we must re-balance the tree.
+
+3. Redistributing: In an attempt to balance the tree, we can try to redistribute the entries by borrowing from a sibling (an adjacent node with the same parent as the current node $L$). If redistribution fails, then we must merge the current node $L$ and its sibling.
+
+4. Merging: If the redistribution fails, then the current node $L$ and its sibling are merged into a single node. The new node will contain the sum of the entries of the two nodes, sorted in ascending order. The entry pointing to the original node ($L$) or its sibling must then be deleted from the parent of $L$.
+
+It is important to note that re-balancing the tree is necessary to maintain the order-preserving property of the B+Tree and to keep the tree height as low as possible, which results in fast search times.
 
 ### Selection Conditions
 
-Because B+Trees are order, lookups have fast traversal and do not require the entire key meaning the DBMS can use a B+Tree index if the query provides any of the attributes of the search key. For example, if we have a B+Tree index on attributes (a, b, c), we can quickly find tuples for the following conditions: (a=1 AND b=2 AND c=3) or (a=1 AND b=2) or (b=2). A B+Tree index differs from a hash index, which requires all attributes in the search key.
+Selection conditions in B+Trees refer to the conditions used to perform searches on the B+Tree index to find desired tuples (data records) in a database management system (DBMS). Because B+Trees are ordered, lookups are fast and only require partial information from the search key, as opposed to a hash index which requires all attributes of the search key.
 
-To perform a prefix search on a B+Tree below, the DBMS looks at the first attribute on the key, follows the path down, and performs a sequential scan across the leaves to find all the keys it wants.
+In B+Trees, the DBMS can use the index for a query if the query provides any of the attributes of the search key. For example, if a B+Tree index is created on attributes (a, b, c), the DBMS can quickly find tuples that match conditions such as (a=1 AND b=2 AND c=3), (a=1 AND b=2), or (b=2).
+
+To perform a prefix search on a B+Tree, the DBMS examines the first attribute of the key, follows the path down the tree, and performs a sequential scan across the leaves to find all the keys that match the desired condition. This is illustrated in the accompanying diagram, where the DBMS would follow the path down the tree and perform a sequential scan across the leaf nodes to find all the desired keys.
+
 ![selection_conditions](https://user-images.githubusercontent.com/73024925/212303815-be0f9a5a-9d2a-4bd4-af49-9c4d3cb53f6f.png)
 
 ### Non-Unique Indexes
@@ -86,7 +93,7 @@ The second approach is to allow leaf nodes to spill into **overflow nodes** that
 
 ![overflow_leaf_nodes](https://user-images.githubusercontent.com/73024925/212307578-930719ee-c051-496e-93a9-46be10f6b8cb.png)
 
-###Clustered Indexes
+### Clustered Indexes
 
 The table is stored in the sort order specified by the primary key as either heap- or index-organized storage. The DBMS maintains the sorted order whenever any update on the table occurs. 
 
