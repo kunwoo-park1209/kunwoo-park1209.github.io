@@ -8,7 +8,7 @@ tags:
 toc: true
 toc_sticky: true
 
-date: 2023-02-12
+date: 2023-02-13
 last_modified_at: 2023-02-14
 ---
 
@@ -80,3 +80,7 @@ std::shared_ptr<Investment> createInvestment() {
     return retVal; 
 }
 ```
+
+## References
+
+[1] Scott Meyers - Effective C++ 3rd edition

@@ -135,3 +135,7 @@ processWidget(std::shared_ptr<Widget>(new Widget), priority());
 std::shared_ptr<Widget> pw(new Widget);
 processWidget(pw, priority());
 ```
+
+## References
+
+[1] Scott Meyers - Effective C++ 3rd edition
