@@ -9,7 +9,7 @@ toc: true
 toc_sticky: true
 
 date: 2023-02-12
-last_modified_at: 2023-02-12
+last_modified_at: 2023-02-14
 ---
 
 ## Item 18: Make interfaces easy to use correctly and hard to use incorrectly.
@@ -17,7 +17,7 @@ last_modified_at: 2023-02-12
 It is important to design user-friendly and error-proof interfaces for classes and functions. This means that the interfaces should be intuitive and straightforward to use, while also being designed in a way that minimizes the likelihood of mistakes or unintended consequences. This is achieved by providing clear documentation, using clear and consistent naming conventions, and providing adequate error checking and handling mechanisms. The goal is to make it as easy as possible for users to use the interfaces correctly, while making it difficult or impossible to use them incorrectly.
 
 ```c++
-// The following interface has at least two errors that clients might easily make. 
+/* The following interface has at least two errors that clients might easily make. */
 
 class Date {
  public:
@@ -28,7 +28,8 @@ class Date {
 Date d(30, 3, 1995); // Oops! Should be "3, 30", not "30, 3"
 Date d(3, 40, 1995); // Oops! Should be "3, 30", not "3, 40"
 
-// Many client errors can be prevented by the introduction of new types and restricting the values of those types.
+/* Many client errors can be prevented by the introduction of new types and 
+ * restricting the values of those types. */
 
 class Month {
  public:
@@ -64,11 +65,14 @@ Date d(Month::Mar(), Day(30), Year(1995));
 ```
 
 ```c++
-// Any interface that requires that clients remember to deallocate dynamically allocated object is prone to incorrect use, because clients can forget to do it.
+/* Any interface that requires that clients remember to deallocate dynamically
+ * allocated object is prone to incorrect use, because clients can forget to
+ * do it. */
 
 Investment *createInvestment();
 
-// A better interface decision would be to preempt the problem by returning a smart pointer in the first place.
+/* A better interface decision would be to preempt the problem by returning a
+ * smart pointer in the first place. */
 
 std::shared_ptr<Investment> createInvestment() {
     std::shared_ptr<Investment> retVal(static_cast<Investment *>(0), getRidOfInvestment);

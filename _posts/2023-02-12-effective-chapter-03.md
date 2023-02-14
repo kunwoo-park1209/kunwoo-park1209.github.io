@@ -64,7 +64,9 @@ Reference Count of pInv2 : 2
 ```
 
 ```c++
-// Do not use smart pointers with dynamically allocated arrays because both unique_ptr and shared_ptr use delete instead of delete [], which leads to memory leak.
+/* Do not use smart pointers with dynamically allocated arrays because both
+ * unique_ptr and shared_ptr use delete instead of delete [], which leads to
+ * memory leak. */
 std::unique_ptr<int> spi(new int[1024]);
 std::shared_ptr<int> spi(new int[1024]);
 
@@ -86,9 +88,10 @@ int daysHeld(const Investment *pi);
 
 // ERROR!
 int days = daysHeld(pInv);
-// Explicit Conversion (i.e., return a copy of the raw pointer inside the smart pointer object)
+/* Explicit Conversion (i.e., return a copy of the raw pointer inside the 
+ * smart pointer object) */
 int days = daysHeld(pInv.get());
-// Implicit Conversion (i.e., use operator to convert to the raw pointer)
+/* Implicit Conversion (i.e., use operator to convert to the raw pointer) */
 int days = daysHeld(*pInv);
 ```
 
@@ -97,12 +100,15 @@ int days = daysHeld(*pInv);
 If you use a form of new (e.g. new[]) to allocate memory, you should use the corresponding form of delete (e.g. delete[]) to deallocate it. If you use the wrong form, you risk undefined behavior, including crashes and memory leaks. It's important to be consistent and use the correct form of new and delete to ensure the safe and proper allocation and deallocation of memory in your program.
 
 ```c++
-// At least 99 of the 100 string objects pointed to by stringArray are unlikely to be properly destroyed
+/* At least 99 of the 100 string objects pointed to by stringArray are unlikely
+ * to be properly destroyed */
 
 std::string *stringArray = new std::string[100];
 delete stringArray;
 
-// If you use [] in a new expression, you must use [] in the corresponding delete expression. If you don't use [] in a new expression, don't use [] in the matching delete expression.
+/* If you use [] in a new expression, you must use [] in the corresponding delete 
+ * expression. If you don't use [] in a new expression, don't use [] in the 
+ * matching delete expression. */
 
 std::string *stringArray = new std::string[100];
 delete [] stringArray;
@@ -123,7 +129,8 @@ It is important to use smart pointers to manage dynamically allocated objects in
 
 processWidget(std::shared_ptr<Widget>(new Widget), priority());
 
-// The way to avoid problems is simple: use a separate statement to create the Widget and store it in a smart pointer
+/* The way to avoid problems is simple: use a separate statement to create
+ * the Widget and store it in a smart pointer */
 
 std::shared_ptr<Widget> pw(new Widget);
 processWidget(pw, priority());
