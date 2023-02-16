@@ -1,5 +1,5 @@
 ---
-title : "[CMU Database Systems] 08. Concurrency Control"
+title : "[CMU Database Systems] 09. Sort & Aggregation Algorithms"
 categories:
   - CMU Database Systems
 tags:

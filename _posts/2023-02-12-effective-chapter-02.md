@@ -9,7 +9,7 @@ toc: true
 toc_sticky: true
 
 date: 2023-02-12
-last_modified_at: 2023-02-12
+last_modified_at: 2023-02-16
 ---
 
 ## Item 5: Know what functions C++ silently writes and calls.
@@ -40,9 +40,84 @@ Returning a reference to `*this` allows assignment operators to be used in chain
 
 It is important to handle self-assignment properly in the assignment operator (`operator=`) of a class. Self-assignment can occur when an object is assigned to itself, such as when `x = x`, and can cause unintended side-effects. The author suggests checking for self-assignment at the beginning of the assignment operator by comparing the address of the object being assigned with the address of the object being assigned to, and returning the object without making any changes if they are the same. This ensures that self-assignment does not cause any errors or unexpected behavior.
 
+```c++
+class Widget
+{
+ ...
+ private:
+  Bitmap* pb;
+};
+
+// self-assignment-unsafe + exception-unsafe
+Widget& Widget::operator=(const Widget& rhs) {
+  delete pb;
+  pb = new Bitmap(*rhs.pb);
+
+  return *this;
+}
+
+// self-assignment-safe + exception-safe
+Widget& Widget::operator=(const Widget& rhs) {
+  Bitmap* pOrig = pb;
+  pb = newBitmap(*rhs.pb);
+  delete pOrig;
+
+  return *this;
+}
+```
+
 ## Item 12: Copy all parts of an object.
 
 It is important to create proper copy constructors and assignment operators. When defining a custom class or structure, it is necessary to ensure that all parts of the object are copied correctly when the object is copied. If the object contains pointers or dynamically allocated memory, these must also be correctly copied, otherwise the copy of the object will not have the desired behavior. This item reminds programmers to carefully consider the behavior of their objects when they are copied, and to make sure they are properly handled.
+
+```c++
+class Customer
+{
+  public:
+    ...
+    Customer(const Customer& rhs);
+    Customer& operator=(const Customer& rhs);
+    ...
+    
+  private:
+    std::string name;
+};
+
+// Copy Constructor
+Customer::Customer(const Customer& rhs)
+: name(rhs.name) {}
+
+// Copy Assignment Operator
+Customer& Customer::operator=(const Customer& rhs)
+{
+  name = rhs.name;
+  return *this;
+}
+
+class PriorityCustomer : public Customer
+{
+  public:
+    ...
+    PriorityCustomer(const PriorityCustomer& rhs);
+    PriorityCustomer& operator=(const PriorityCustomer& rhs);
+    ...
+    
+  private:
+    int priority;
+};
+
+// Copy Constructor
+PriorityCustomer::PriorityCustomer(const PriorityCustomer& rhs)
+: Customer(rhs), priority(rhs.priority) {}
+
+// Copy Assignment Operator
+PriorityCustomer& PriorityCustomer::operator=(const PriorityCustomer& rhs)
+{
+  Customer::operator=(rhs);
+  priority = rhs.priority;
+  return *this;
+}
+```
 
 ## References
 
