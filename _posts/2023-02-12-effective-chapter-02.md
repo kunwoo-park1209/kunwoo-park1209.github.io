@@ -28,13 +28,73 @@ It is important to make the destructors of base classes virtual when the base cl
 
 It is dangerous to let exceptions propagate out of destructors as it can cause resources to not be freed and lead to resource leaks or other unexpected behavior. To avoid this, the author suggests catching and handling exceptions within destructors to ensure proper resource deallocation and program termination.
 
+```c++
+// Solution 1: Terminate the program
+DBConn::~DBConn()
+{
+ try { db.close(); }
+ catch (...) { std::abort; }
+}
+
+// Solution 2: Swallow the exception
+DBConn::~DBConn()
+{
+ try { db.close(); }
+ catch (...) { /* make sure the resource is deallocated */ }
+}
+```
+
 ## Item 9: Never call virtual functions during construction or destruction.
 
 An unexpected behavior can occur when calling virtual functions during the construction or destruction of an object. This is because the object's state may not yet be fully established or may already be partially destroyed, leading to incorrect results or undefined behavior. To avoid these issues, the author recommends not calling virtual functions during construction or destruction, and instead relying on non-virtual functions or using other techniques such as virtual base classes.
 
+```c++
+class Transaction
+{
+  public:
+    Transaction() { logTransaction(); }
+    virtual void logTransaction() const { std::cout << "Base" << std::endl; }
+};
+
+class BuyTransaction : public Transaction
+{
+  public:
+    virtual void logTransaction() const { std::cout << "Buy" << std::endl; }
+};
+
+int main() {
+    BuyTransaction b;
+    return 0;
+}
+
+/* Output: Base */
+```
+
 ## Item 10: Having assignment operators return a reference to `*this`.
 
 Returning a reference to `*this` allows assignment operators to be used in chaining expressions, leading to more readable and concise code. For example, if the assignment operator of a class returns a reference to *this, you can write code like `object1 = object2 = object3`, instead of having to write `object3 = object2; object1 = object3;`. Returning a reference to `*this` also allows for more efficient code because it eliminates the need for an extra copy of the object being assigned.
+
+```c++
+class Widget
+{
+  public:
+    Widget& operator=(const Widget& rhs)
+    {
+      ...
+      return *this;
+    }
+    Widget& operator+=(const Widget& rhs)
+    {
+      ...
+      return *this;
+    }
+    Widget& operator=(int rhs)
+    {
+      ...
+      return *this;
+    }
+};
+```
 
 ## Item 11: Handle assignment to self in `operator=`.
 
