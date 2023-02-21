@@ -9,7 +9,7 @@ toc: true
 toc_sticky: true
 
 date: 2023-02-12
-last_modified_at: 2023-02-16
+last_modified_at: 2023-02-21
 ---
 
 ## Item 5: Know what functions C++ silently writes and calls.
@@ -19,6 +19,19 @@ It's important to understand what functions C++ generates and calls behind the s
 ## Item 6: Explicitly disallow the use of compiler-generated functions you do not want.
 
 Be aware of and control the functions that the C++ compiler generates automatically, such as the copy constructor, assignment operator, and destructor. If there are specific instances where you do not want the compiler to generate these functions, you should explicitly disallow them by declaring them as private and not providing an implementation. This helps prevent unintended behavior and can improve code quality.
+
+```c++
+/* Prevent copying HomeForSale class */
+class HomeForSale
+{
+  public:
+    ...
+  private:
+    ...
+    HomeForSale(const HomeForSale&);
+    HomeForSale& operator=(const HomeForSale&);
+};
+```
 
 ## Item 7: Declare destructors virtual in polymorphic base classes.
 
